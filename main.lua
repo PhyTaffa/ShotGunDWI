@@ -22,6 +22,8 @@ function love.load()
     camera:setFollowLerp(0.2)
     camera:setFollowLead(10)
     camera:setFollowStyle('NO_DEADZONE')
+    camera:setBounds(-160, -1570, 4000, 2500)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
+
 
     ball = LoadPlayer(world)
 
