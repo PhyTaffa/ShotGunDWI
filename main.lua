@@ -10,7 +10,7 @@ local win = false
 local ball
 
 --love.window.setMode( 900, 800)
-love.window.setFullscreen(true)
+--love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)

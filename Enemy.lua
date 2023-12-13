@@ -186,23 +186,23 @@ function LoadEnemies(world)
     stalactite.distance = 0
 
 
-    stalactitehurttriggerleft = {}
-    stalactitehurttriggerleft.body = love.physics.newBody(world,XStalactite,Ystalactite,"dynamic")
-    stalactitehurttriggerleft.shape = love.physics.newRectangleShape(52,102)
-    stalactitehurttriggerleft.fixture = love.physics.newFixture(stalactitehurttriggerleft.body,stalactitehurttriggerleft.shape,1)
-    stalactitehurttriggerleft.fixture:setSensor (true)
-    stalactitehurttriggerleft.fixture:setUserData (stalactitehurttriggerleft)
-    stalactitehurttriggerleft.body:setMass(1)
-    stalactitehurttriggerleft.name= "hurttriggerL"
+    -- stalactitehurttriggerleft = {}
+    -- stalactitehurttriggerleft.body = love.physics.newBody(world,XStalactite,Ystalactite,"dynamic")
+    -- stalactitehurttriggerleft.shape = love.physics.newRectangleShape(52,102)
+    -- stalactitehurttriggerleft.fixture = love.physics.newFixture(stalactitehurttriggerleft.body,stalactitehurttriggerleft.shape,1)
+    -- stalactitehurttriggerleft.fixture:setSensor (true)
+    -- stalactitehurttriggerleft.fixture:setUserData (stalactitehurttriggerleft)
+    -- stalactitehurttriggerleft.body:setMass(1)
+    -- stalactitehurttriggerleft.name= "hurttriggerL"
 
-    stalactitehurttriggerright = {}
-    stalactitehurttriggerright.body = love.physics.newBody(world,XStalactite,Ystalactite,"dynamic")
-    stalactitehurttriggerright.shape = love.physics.newRectangleShape(52,102)
-    stalactitehurttriggerright.fixture = love.physics.newFixture(stalactitehurttriggerright.body,stalactitehurttriggerright.shape,1)
-    stalactitehurttriggerright.fixture:setSensor (true)
-    stalactitehurttriggerright.fixture:setUserData (stalactitehurttriggerright)
-    stalactitehurttriggerright.body:setMass(1)
-    stalactitehurttriggerright.name= "hurttriggerR"
+    -- stalactitehurttriggerright = {}
+    -- stalactitehurttriggerright.body = love.physics.newBody(world,XStalactite,Ystalactite,"dynamic")
+    -- stalactitehurttriggerright.shape = love.physics.newRectangleShape(52,102)
+    -- stalactitehurttriggerright.fixture = love.physics.newFixture(stalactitehurttriggerright.body,stalactitehurttriggerright.shape,1)
+    -- stalactitehurttriggerright.fixture:setSensor (true)
+    -- stalactitehurttriggerright.fixture:setUserData (stalactitehurttriggerright)
+    -- stalactitehurttriggerright.body:setMass(1)
+    -- stalactitehurttriggerright.name= "hurttriggerR"
 
     stalactitetrigger = {
         x = 550,  -- x-coordinate of the trigger area
@@ -229,8 +229,8 @@ function UpdateTriggerPosition()
 
     if stalactite.body:isDestroyed() == false then
         XStalactite, Ystalactite= stalactite.body:getPosition()
-        stalactitehurttriggerleft.body:setPosition(XStalactite - 25,  Ystalactite)
-        stalactitehurttriggerright.body:setPosition(XStalactite + 25,  Ystalactite)
+        -- stalactitehurttriggerleft.body:setPosition(XStalactite - 25,  Ystalactite)
+        -- stalactitehurttriggerright.body:setPosition(XStalactite + 25,  Ystalactite)
     end
 
     if bird2.body:isDestroyed() == false then
@@ -399,6 +399,7 @@ end
 
 function FallingStalactite(CanFall,dt)
     if  CanFall == true then
+        --stalactite.body:setGravityScale(70 * love.physics.getMeter())
         stalactite.body:setY(stalactite.body:getY() +750 *dt)
     end
 end

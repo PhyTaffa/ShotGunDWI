@@ -112,33 +112,6 @@ function Infiniteammo(dt)
     end
 end
 
--- function displayTable(table)
---     for key, value in pairs(table) do
---         if type(value) == "table" then
---             -- If the value is another table, recursively display its content
---             print(key .. ":")
---             displayTable(value)
---         else
---             -- Print key-value pairs
---             print(key .. ": " .. tostring(value))
---         end
---     end
---     print("\n")
--- end
-
--- function DistancePlayerObj(list)
---     local playerX = list[1].x
---     local playerY = list[1].x
---     local playerT = list[1].fixture
-
---     for _, fixture in ipairs(list) do
---         print("Name:", fixture.fixture)
---         print("X Coordinate:", list.x)
---         print("Y Coordinate:", list.y)
---         print("----")
---     end
-
--- end
 
 function UpdatePlayer(dt, camera, world)
     camera:follow(ball.body:getPosition())
@@ -294,21 +267,6 @@ function love.keypressed(key)
 
 end
 
-
--- function printTable(table, indent)
---     indent = indent or 0
-
---     for key, value in pairs(table) do
---         if type(value) == "table" then
---             print(string.rep("  ", indent) .. key .. ":")
---             printTable(value, indent + 1)
---         else
---             print(string.rep("  ", indent) .. key .. ": " .. tostring(value))
---         end
---     end
--- end
-
-
 function CheatMovements(world)
 
 
@@ -428,8 +386,14 @@ function BeginContactPlayer(fixtureA, fixtureB)
         fixtureA:getUserData().canFall = false
     end
 
-    if (fixtureB:getUserData().name == "stalactite" and fixtureA:getUserData().name == "groundrock") then
+    if (fixtureB:getUserData().name == "stalactite" and fixtureA:getUserData().name == "Player") then
         fixtureB:getUserData().canFall = false
+
+        local playerX = ball.body:getX()
+        local stalactiteX = fixtureA:getUserData().body:getX()
+
+        CheckRelativeXtoPlayer(playerX, stalactiteX)
+
     end
 
     -- if (fixtureB:getUserData().name == "platagrass4" and fixtureA:getUserData().name == "Player") or (fixtureA:getUserData().name == "platagrass4" and fixtureB:getUserData().name == "Player") then
@@ -441,6 +405,17 @@ function BeginContactPlayer(fixtureA, fixtureB)
         win = true
         UpdateWinCondition()
     end
+
+end
+
+function CheckRelativeXtoPlayer(pX, sX)
+    if pX > sX then
+        ball.body:applyLinearImpulse(1000,1000)
+    else
+        ball.body:applyLinearImpulse(-1000,1000)
+    end
+
+    print("player: ", pX, " StalactiteX: ", sX)
 
 end
 
