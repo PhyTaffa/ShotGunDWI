@@ -269,7 +269,7 @@ function Winning()
     local ballX, ballY = PlayerPosition()
 
     love.graphics.setColor(1,1,1)
-    love.graphics.print("Your life is nothing, you serve zero purpose.\nYou should Love yourself, NOW! \n jk", ballX-400, ballY-300,0,2,2)
+    love.graphics.print("Your life is everything, you serve purpose.\nYou should Love yourself, NOW! \n jk", ballX-400, ballY-300,0,2,2)
     love.graphics.draw(ltgLove, ballX-400, ballY-200)
 
 end

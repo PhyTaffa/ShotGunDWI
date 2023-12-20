@@ -24,6 +24,7 @@ function LoadEnemies(world)
     bird.body:setLinearDamping(3)
     bird.fixture:setUserData(bird)
     bird.name = "enemy"
+    bird.type = "enemy"
     bird.x, bird.y = bird.body:getPosition()
     bird.speedX = 1
     bird.speedY = 1
@@ -80,6 +81,7 @@ function LoadEnemies(world)
     bird2.body:setLinearDamping(3)
     bird2.fixture:setUserData(bird2)
     bird2.name = "enemy"
+    bird2.type = "enemy"
     bird2.x, bird2.y = bird2.body:getPosition()
     bird2.speedX = 1
     bird2.speedY = 1
@@ -241,34 +243,33 @@ function UpdateTriggerPosition()
 end
 
 function FoxBehaviour(dt)
-if fox.body:isDestroyed()==false then
---if foxnoticed == true then
-    if foxreadytimer > 0 then --timer function for idle animation. Future-proofing for after the prototyping delivery
+    if fox.body:isDestroyed() == false then
+    --if foxnoticed == true then
+        if foxreadytimer > 0 then --timer function for idle animation. Future-proofing for after the prototyping delivery
 
-    foxreadytimer = foxreadytimer-dt
+        foxreadytimer = foxreadytimer-dt
 
-        if foxreadytimer < 0 then
+            if foxreadytimer < 0 then
 
-            if foxattacktimer > 0 then
-            foxattacktimer = foxattacktimer - dt
+                if foxattacktimer > 0 then
+                    foxattacktimer = foxattacktimer - dt
 
-            local Xplayer, YPlayer = PlayerPosition()
+                    local Xplayer, YPlayer = PlayerPosition()
 
-            if Xplayer >= Xfox then
-                fox.body:setLinearVelocity(500, -1800)
-                foxreadytimer = 2.5
-                foxattacktimer = 1
-            else
-                fox.body:setLinearVelocity(-500, -1800)
-                foxreadytimer = 2.33
-                foxattacktimer = 1
-            end
+                    if Xplayer >= Xfox then
+                        fox.body:setLinearVelocity(500, -1800)
+                        foxreadytimer = 2.5
+                        foxattacktimer = 1
+                    else
+                        fox.body:setLinearVelocity(-500, -1800)
+                        foxreadytimer = 2.33
+                        foxattacktimer = 1
+                    end
 
+                end
             end
         end
-
     end
-end
 end
 
 
@@ -289,29 +290,26 @@ function UpdateEnemies(dt, playerx, playery,ball)
         print("Enemy activated!")
    
     else
-        bird.body :setPosition(OriginalX, OriginalY)
+        bird.body:setPosition(OriginalX, OriginalY)
         bird.active = false
-   
-               bird.x = 1200
-               bird.y = 550              
-               bird.active = false  -- Deactivate the bird
+        bird.x = 1200
+        bird.y = 550              
+        bird.active = false  -- Deactivate the bird
 
     end
    
-           bird.direction = vector2.new (math. cos (bird. body : getAngle ()),
-           math. sin (bird. body : getAngle ()) )
+    bird.direction = vector2.new(math.cos(bird.body:getAngle()), math.sin(bird.body:getAngle()))
    
     if bird.active then  
-        if(CanSee (vector2.new (bird. body:getPosition () ), bird. direction, playerposition, bird. viewangle) ) then
-        bird. chasing = true
+        if(CanSee (vector2.new(bird.body:getPosition()), bird.direction, playerposition, bird.viewangle)) then
+        bird.chasing = true
    
         end
         if bird. chasing then
-            local playerdirection = vector2.normalize (vector2. sub (
-            playerposition, vector2.new (bird.body :getPosition ())))
-            local engineForce = vector2.mult (playerdirection, 2500)
-            bird. body: applyForce (engineForce.x, engineForce.y)
-            local birdvelocity = vector2.new (bird. body : getLinearVelocity () )
+            local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(bird.body:getPosition())))
+            local engineForce = vector2.mult (playerdirection,2500)
+            bird.body:applyForce(engineForce.x, engineForce.y)
+            local birdvelocity = vector2.new(bird.body:getLinearVelocity () )
             -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
    
             if bird.x > 50 + bird.range then
@@ -343,18 +341,16 @@ function UpdateEnemies(dt, playerx, playery,ball)
 
     end
    
-    bird2.direction = vector2.new (math. cos (bird2. body : getAngle ()),
-    math. sin (bird2. body : getAngle ()) )
+    bird2.direction = vector2.new(math.cos(bird2.body:getAngle()), math.sin(bird2.body:getAngle()))
 
-    if bird2.active then  
-        if(CanSee (vector2.new (bird2. body:getPosition () ), bird2. direction, playerposition, bird2. viewangle) ) then
-            bird2. chasing = true
+    if bird2.active then
+        if(CanSee(vector2.new(bird2.body:getPosition()), bird2.direction, playerposition, bird2.viewangle)) then
+            bird2.chasing = true
         end
 
-    if bird2. chasing then
-        local playerdirection = vector2.normalize (vector2. sub (
-        playerposition, vector2.new (bird2.body :getPosition ())))
-        local engineForce = vector2.mult (playerdirection, 2500)
+    if bird2.chasing then
+        local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(bird2.body:getPosition())))
+        local engineForce = vector2.mult(playerdirection, 2500)
         bird2. body: applyForce (engineForce.x, engineForce.y)
         local birdvelocity = vector2.new (bird2. body : getLinearVelocity () )
         -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
@@ -404,9 +400,9 @@ function FallingStalactite(CanFall,dt)
 end
 
 function CanSee(pl, pllookdir, p2, viewangle)
-    local direction = vector2. normalize (vector2. sub (p2, pl) )
-    local angle = math.acos (vector2. dot (pllookdir, direction) )
-    if (math. deg (angle) > viewangle) then
+    local direction = vector2.normalize(vector2.sub(p2, pl))
+    local angle = math.acos (vector2.dot(pllookdir, direction))
+    if (math.deg(angle) > viewangle) then
         return true
     end
 end
