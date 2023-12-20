@@ -57,7 +57,7 @@ function love.update(dt)
     UpdateEnemies(dt, playerx, playery,ball)
 
     --cheats
-    FoxBehaviour(dt)
+    -- FoxBehaviour(dt)
     Infiniteammo(dt)
     Updatetoggletimer(dt)
     Noknockback()

@@ -55,7 +55,7 @@ function Updatetoggletimer(dt)
 function LoadPlayer(world)
 
     ball= {}
-    ball.body = love.physics.newBody(world, 200, 500, "dynamic")
+    ball.body = love.physics.newBody(world, 300, -400, "dynamic")
     ball.shape= love.physics.newCircleShape(30)
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 1)
     --ball.fixture:setFriction(0.02)
@@ -448,8 +448,9 @@ function BeginContactPlayer(fixtureA, fixtureB)
         fixtureA:getUserData().canFall = false
     end
 
-    if (fixtureB:getUserData().name == "stalactite" and fixtureA:getUserData().name == "groundrock") then
+    if (fixtureB:getUserData().name == "stalactite" and fixtureA:getUserData().type == "terrain") then
         fixtureB:getUserData().canFall = false
+        fixtureB:getUserData().groundContact = true
     end
 
     -- if (fixtureB:getUserData().name == "platagrass4" and fixtureA:getUserData().name == "Player") or (fixtureA:getUserData().name == "platagrass4" and fixtureB:getUserData().name == "Player") then

@@ -29,8 +29,8 @@ function LoadEnemies(world)
     bird.speedX = 1
     bird.speedY = 1
     bird.direction = 1
-    OriginalX = 1300
-    OriginalY = 250
+    bird.OriginalX = 1300
+    bird.OriginalY = 250
     bird.body:setGravityScale(0)
     bird.viewangle = 0
     bird.chasing = false
@@ -86,8 +86,8 @@ function LoadEnemies(world)
     bird2.speedX = 1
     bird2.speedY = 1
     bird2.direction = 1
-    Original2X = 2500
-    Original2Y = -1450
+    bird2.OriginalX = 2500
+    bird2.OriginalY = -1450
     bird2.body:setGravityScale(0)
     bird2.viewangle = 0
     bird2.chasing = false
@@ -178,14 +178,11 @@ function LoadEnemies(world)
     stalactite.name = "stalactite"
     stalactite.type = "enemy"
     stalactite.body:setGravityScale(0)
-    stalactite.direction= 1
-    stalactite.viewangle = 0
-    stalactite.chasing = false
-    stalactite.range = 2
-    stalactite.canFall = true
+    stalactite.canFall = false
     stalactite.x =0
     stalactite.y = 0
     stalactite.distance = 0
+    stalactite.groundContact = false
 
 
     stalactitehurttriggerleft = {}
@@ -278,124 +275,27 @@ function UpdateEnemies(dt, playerx, playery,ball)
 
     local playerposition = vector2.new(playerx,playery)
    
-    if  CheckCollision(ball, birdtrigger) then
-       -- Activate the trigger
-        birdtrigger.triggered = true
-        print("Trigger activated!")
-   
-        -- Activate the bird
-        bird.x = 1400  -- Set the initial x-coordinate of the bird
-        bird.y = 550  -- Set the initial y-coordinate of the bird
-        bird.active = true
-        print("Enemy activated!")
-   
-    else
-        bird.body:setPosition(OriginalX, OriginalY)
-        bird.active = false
-        bird.x = 1200
-        bird.y = 550              
-        bird.active = false  -- Deactivate the bird
+    BirdCollision(ball, birdtrigger, bird)
+    BirdMovement(bird, playerposition)
+    
 
-    end
-   
-    bird.direction = vector2.new(math.cos(bird.body:getAngle()), math.sin(bird.body:getAngle()))
-   
-    if bird.active then  
-        if(CanSee (vector2.new(bird.body:getPosition()), bird.direction, playerposition, bird.viewangle)) then
-        bird.chasing = true
-   
-        end
-        if bird. chasing then
-            local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(bird.body:getPosition())))
-            local engineForce = vector2.mult (playerdirection,2500)
-            bird.body:applyForce(engineForce.x, engineForce.y)
-            local birdvelocity = vector2.new(bird.body:getLinearVelocity () )
-            -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
-   
-            if bird.x > 50 + bird.range then
-                bird.direction = -1
-            elseif bird.x < 50 - bird.range then
-                bird.direction = 1
-            end
-        end
-   
-    end
-   
-    if  CheckCollision(ball, bird2trigger) then
-        -- Activate the trigger
-        bird2trigger.triggered = true
-        print("Trigger activated!")
-   
-        -- Activate the bird
-        bird2.x = 1400  -- Set the initial x-coordinate of the bird
-        bird2.y = 550  -- Set the initial y-coordinate of the bird
-        bird2.active = true
-        print("Enemy activated!")
-   
-    else
-        bird2.body :setPosition(Original2X, Original2Y)
-        bird2.active = false
-        bird2.x = 1200
-        bird2.y = 550              
-        bird2.active = false  -- Deactivate the bird
 
-    end
    
-    bird2.direction = vector2.new(math.cos(bird2.body:getAngle()), math.sin(bird2.body:getAngle()))
-
-    if bird2.active then
-        if(CanSee(vector2.new(bird2.body:getPosition()), bird2.direction, playerposition, bird2.viewangle)) then
-            bird2.chasing = true
-        end
-
-    if bird2.chasing then
-        local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(bird2.body:getPosition())))
-        local engineForce = vector2.mult(playerdirection, 2500)
-        bird2. body: applyForce (engineForce.x, engineForce.y)
-        local birdvelocity = vector2.new (bird2. body : getLinearVelocity () )
-        -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
-
-        if bird2.x > 50 + bird2.range then
-            bird2.direction = -1
-        elseif bird2.x < 50 - bird2.range then
-            bird2.direction = 1
-        end
-    end
+    BirdCollision(ball, bird2trigger, bird2)
+    BirdMovement(bird2, playerposition)
    
    
-    end
-   
-   
-   
+   FoxBehaviour(dt)
        
    
-    if  CheckCollision(ball, stalactitetrigger) then
-        -- Activate the trigger
-        stalactitetrigger.triggered = true
-        -- print("stalactiteTrigger activated!")
+   StalactiteCollision(ball, stalactitetrigger, stalactite)
+   FallingStalactite(stalactite, dt)
 
-
-        stalactite.active = true
-        -- print("stalactite activated!")
-
-        --stalactite.body:setGravityScale(1)
-        playerTriggeredStalactite = true
-        if stalactite.canFall then
-            FallingStalactite(playerTriggeredStalactite, dt)
-        end
-        -- if  CheckCollision(stalactitetrigger, platarock2) then
-        --     a = false - 
-        -- end
-            -- stalactite.direction = vector2.new (math. cos (stalactite. body : getAngle ()),
-            -- math. sin (stalactite. body : getAngle ()) )
-
-
-    end
 end
 
-function FallingStalactite(CanFall,dt)
-    if  CanFall == true then
-        stalactite.body:setY(stalactite.body:getY() +750 *dt)
+function FallingStalactite(stalactite,dt)
+    if  stalactite.canFall == true and stalactite.groundContact ~= true then
+        stalactite.body:setY(stalactite.body:getY() +550 *dt)
     end
 end
 
@@ -444,4 +344,60 @@ function CheckCollision(a, b)
         a.x<= b.x + b.width and
         a.y>= b.y and
         a.y<= b.y + b.height
+end
+
+
+function BirdCollision(player,birdTriggerZone, birb)
+    if  CheckCollision(player,birdTriggerZone) then
+        -- Activate the trigger
+         birdtrigger.triggered = true
+         print("Trigger activated!")
+    
+         -- Activate the bird
+         birb.x = 1400  -- Set the initial x-coordinate of the bird
+         birb.y = 550  -- Set the initial y-coordinate of the bird
+         birb.active = true
+         print("Enemy activated!")
+    
+     else
+         birb.body:setPosition(birb.OriginalX, birb.OriginalY)
+         birb.active = false
+         birb.x = 1200
+         birb.y = 550              
+         birb.active = false  -- Deactivate the bird
+ 
+     end
+end
+
+
+function BirdMovement(birb, playerposition)
+    birb.direction = vector2.new(math.cos(birb.body:getAngle()), math.sin(birb.body:getAngle()))
+   
+    if birb.active then  
+        if(CanSee (vector2.new(birb.body:getPosition()), birb.direction, playerposition, birb.viewangle)) then
+        birb.chasing = true
+   
+        end
+        if birb. chasing then
+            local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(birb.body:getPosition())))
+            local engineForce = vector2.mult (playerdirection,2500)
+            birb.body:applyForce(engineForce.x, engineForce.y)
+            local birdvelocity = vector2.new(birb.body:getLinearVelocity () )
+            -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
+   
+            if birb.x > 50 + birb.range then
+                birb.direction = -1
+            elseif birb.x < 50 - birb.range then
+                birb.direction = 1
+            end
+        end
+   
+    end
+end
+
+function StalactiteCollision(player, StalactiteTriggerZone, stalactite)
+    if  CheckCollision(player, StalactiteTriggerZone) then
+
+        stalactite.canFall = true
+    end
 end
