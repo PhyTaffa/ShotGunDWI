@@ -62,3 +62,11 @@ end
 function vector2.dot(vec1, vec2)
     return vec1.x * vec2.x + vec1.y * vec2.y
 end
+
+
+function vector2.rotation(vec, n)
+    local result = vector2.new(0,0)
+    result.x= vec.x * math.cos(n)
+    result.y = vec.y * math.sin(n)
+    return result
+end

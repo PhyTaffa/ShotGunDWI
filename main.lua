@@ -9,8 +9,8 @@ local Stranded = false
 local win = false
 local ball
 
---love.window.setMode( 900, 800)
-love.window.setFullscreen(true)
+love.window.setMode( 900, 800)
+--love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
@@ -81,11 +81,11 @@ function love.draw()
             DrawPlayer()
             DrawTrajectory()
             DrawShootingZone()
-            DrawUI()
+            
 
         love.graphics.pop()
         camera:detach()    
-
+        DrawUI()
         else--what you see when you die
             GamingOver()
             love.graphics.pop()
@@ -97,5 +97,5 @@ function love.draw()
             love.graphics.pop()
             camera:detach()
     end
-
+    
 end

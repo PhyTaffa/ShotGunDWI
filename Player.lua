@@ -4,7 +4,7 @@ local ball
 local timer = 0
 local CameraDirection = vector2.new(0,0)
 local Stranded = false
-ammo = 30
+local ammo = 30
 local DisplayShootingZone = false
 local collected = false
 local ammoboxtrigger
@@ -13,14 +13,18 @@ local knockbacky = -1200
 local knockbackposx = 1200
 local knockbacknegx = -1200
 local knockbacktoggle = false
-local knockbacktoggletimer 
-
-
-knockbacktoggletimer = 0.1
+local knockbacktoggletimer = 0.1
 
 local cheats= false
 local GravityChangin= false
 local rotation = 0
+
+local ShootingRange = vector2.new(600,600)
+local ShootingRange2 = vector2.new(600,600)
+local ShootingRange3 = vector2.new(600,600)
+local value = 0
+
+local ActualShootingRange = vector2.new(0,0)
 
 function Noknockback()
 
@@ -89,10 +93,11 @@ end
 
 function CameraCoordinate()
     --From world coordinate to Camera Coordinates
+    --player - Mouse
     local ball_x, ball_y = camera:toCameraCoords(ball.body:getPosition())
     local CameraPlayerPos = vector2.new(ball_x, ball_y)
     local CameraMousePos = vector2.new(love.mouse.getX(),love.mouse.getY())
-    local CameraDirection1 = vector2.sub(CameraPlayerPos, CameraMousePos)
+    local CameraDirection1 = vector2.sub(CameraMousePos, CameraPlayerPos)
 
     return CameraDirection1
 end
@@ -149,12 +154,21 @@ function UpdatePlayer(dt, camera, world)
         timer = timer-dt
     end
 
+    --player - Mouse
     CameraDirection = CameraCoordinate()
+    ShootingRange = CameraDirection
+    ShootingRange = vector2.normalize(ShootingRange)
+    ShootingRange = vector2.mult(ShootingRange, 100)
+    --Angle between player and mouse
     rotation = math.atan2(CameraDirection.y, CameraDirection.x)
 
+    ActualShootingRange = vector2.add(ShootingRange, vector2.new(PlayerPosition()))
 
     --Player movemnts Using CAMERA as a reference
     if love.mouse.isDown(1) and ball.canshoot == true and timer <= 0 and ammo > 0 then
+
+        ActualShootingRange = vector2.rotation(ShootingRange, rotation)
+        print(rotation)
 
         Ray = {}
 
@@ -163,7 +177,8 @@ function UpdatePlayer(dt, camera, world)
         FindDistance(Ray)
         SortTable(Ray)
         SearchValue(Ray)
-
+        -- world:rayCast( ball.x, ball.y, Wx * math.cos(rotation), Wy * math.sin(rotation), WorldRayCastCallback )
+        -- world:rayCast( ball.x, ball.y, Wx * math.cos(rotation), Wy * math.sin(rotation), WorldRayCastCallback )
 
         timer = 1
         DisplayShootingZone = true
@@ -173,7 +188,7 @@ function UpdatePlayer(dt, camera, world)
 
             CameraDirection = vector2.normalize(CameraDirection)
             local velocity =  vector2.mult(CameraDirection, -1600)
-            ball.body:applyLinearImpulse(-(velocity.x), -(velocity.y+100))
+            ball.body:applyLinearImpulse(velocity.x, velocity.y - 200)
 
         else
             ball.body:setLinearVelocity(0,0)
@@ -371,13 +386,18 @@ function DrawTrajectory()
     local Wx, Wy = camera:getMousePosition()
     love.graphics.setColor(1,0.7,0.4)
     love.graphics.line(ball.x, ball.y, Wx, Wy)
+    love.graphics.line(ball.x, ball.y, ShootingRange.x, ShootingRange.y)
 end
 
 function DrawShootingZone()
 
     if DisplayShootingZone == true then
         love.graphics.setColor(0,1,0)
-        RotateDisplayShootingZone("fill", ball.x, ball.y, 1, 1, rotation)
+        -- RotateDisplayShootingZone("fill", ball.x, ball.y, 1, 1, rotation)
+        -- RotateDisplayShootingZone("fill", ball.x, ball.y-100, 1, 1, rotation)
+        -- RotateDisplayShootingZone("fill", ball.x, ball.y+100, 1, 1, rotation)
+        love.graphics.line(ball.x, ball.y, ActualShootingRange.x, ActualShootingRange.y)
+
         DisplayShootingZone = false
     end
 
@@ -402,7 +422,7 @@ function DrawUI()
     love.graphics.setColor(1,1,1)
     -- set font
     love.graphics.setFont(love.graphics.newFont(20))
-    love.graphics.print("ammo: ".. ammo, PlayerX+(sw/2)-300 ,PlayerY+(sh/2)-800,0,1,1 )
+    love.graphics.print("ammo: ".. ammo, sw-150, sh/2,0,1,1 )
 
 end
 
@@ -442,6 +462,11 @@ function BeginContactPlayer(fixtureA, fixtureB)
         UpdateWinCondition()
     end
 
+    if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
+
+        print("Terrain contact")
+
+    end
 end
 
 function UpdateWinCondition()
