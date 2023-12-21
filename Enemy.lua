@@ -294,8 +294,10 @@ function UpdateEnemies(dt, playerx, playery,ball)
 end
 
 function FallingStalactite(stalactite,dt)
-    if  stalactite.canFall == true and stalactite.groundContact ~= true then
-        stalactite.body:setY(stalactite.body:getY() +550 *dt)
+    if stalactite.body:isDestroyed() == false then
+        if  stalactite.canFall == true and stalactite.groundContact ~= true then
+            stalactite.body:setY(stalactite.body:getY() +550 *dt)
+        end
     end
 end
 
@@ -348,56 +350,62 @@ end
 
 
 function BirdCollision(player,birdTriggerZone, birb)
-    if  CheckCollision(player,birdTriggerZone) then
-        -- Activate the trigger
-         birdtrigger.triggered = true
-         print("Trigger activated!")
+    if birb.body:isDestroyed() == false then
+        if CheckCollision(player,birdTriggerZone) then
+            -- Activate the trigger
+            birdtrigger.triggered = true
+            print("Trigger activated!")
+        
+            -- Activate the bird
+            birb.x = 1400  -- Set the initial x-coordinate of the bird
+            birb.y = 550  -- Set the initial y-coordinate of the bird
+            birb.active = true
+            print("Enemy activated!")
+        
+        else
+            birb.body:setPosition(birb.OriginalX, birb.OriginalY)
+            birb.active = false
+            birb.x = 1200
+            birb.y = 550              
+            birb.active = false  -- Deactivate the bird
     
-         -- Activate the bird
-         birb.x = 1400  -- Set the initial x-coordinate of the bird
-         birb.y = 550  -- Set the initial y-coordinate of the bird
-         birb.active = true
-         print("Enemy activated!")
-    
-     else
-         birb.body:setPosition(birb.OriginalX, birb.OriginalY)
-         birb.active = false
-         birb.x = 1200
-         birb.y = 550              
-         birb.active = false  -- Deactivate the bird
- 
-     end
+        end
+    end
 end
 
 
 function BirdMovement(birb, playerposition)
-    birb.direction = vector2.new(math.cos(birb.body:getAngle()), math.sin(birb.body:getAngle()))
-   
-    if birb.active then  
-        if(CanSee (vector2.new(birb.body:getPosition()), birb.direction, playerposition, birb.viewangle)) then
-        birb.chasing = true
-   
-        end
-        if birb. chasing then
-            local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(birb.body:getPosition())))
-            local engineForce = vector2.mult (playerdirection,2500)
-            birb.body:applyForce(engineForce.x, engineForce.y)
-            local birdvelocity = vector2.new(birb.body:getLinearVelocity () )
-            -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
-   
-            if birb.x > 50 + birb.range then
-                birb.direction = -1
-            elseif birb.x < 50 - birb.range then
-                birb.direction = 1
+    if birb.body:isDestroyed() == false then
+        birb.direction = vector2.new(math.cos(birb.body:getAngle()), math.sin(birb.body:getAngle()))
+    
+        if birb.active then  
+            if(CanSee (vector2.new(birb.body:getPosition()), birb.direction, playerposition, birb.viewangle)) then
+            birb.chasing = true
+    
             end
+            if birb. chasing then
+                local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(birb.body:getPosition())))
+                local engineForce = vector2.mult (playerdirection,2500)
+                birb.body:applyForce(engineForce.x, engineForce.y)
+                local birdvelocity = vector2.new(birb.body:getLinearVelocity () )
+                -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
+    
+                if birb.x > 50 + birb.range then
+                    birb.direction = -1
+                elseif birb.x < 50 - birb.range then
+                    birb.direction = 1
+                end
+            end
+    
         end
-   
     end
 end
 
 function StalactiteCollision(player, StalactiteTriggerZone, stalactite)
-    if  CheckCollision(player, StalactiteTriggerZone) then
+    if stalactite.body:isDestroyed() == false then 
+        if  CheckCollision(player, StalactiteTriggerZone) then
 
-        stalactite.canFall = true
+            stalactite.canFall = true
+        end
     end
 end

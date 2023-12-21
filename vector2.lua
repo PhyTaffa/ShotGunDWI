@@ -64,9 +64,16 @@ function vector2.dot(vec1, vec2)
 end
 
 
+function vector2.rotationRadius(vec, n)
+    local result = vector2.new(0,0)
+    result.x = vec.x * math.cos(n)
+    result.y = vec.y * math.sin(n)
+    return result
+end
+
 function vector2.rotation(vec, n)
     local result = vector2.new(0,0)
-    result.x= vec.x * math.cos(n)
-    result.y = vec.y * math.sin(n)
+    result.x = vec.x * math.cos(n) - vec.y * math.sin(n)
+    result.y = vec.x * math.sin(n) + vec.y * math.cos(n)
     return result
 end

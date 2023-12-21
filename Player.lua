@@ -19,12 +19,10 @@ local cheats= false
 local GravityChangin= false
 local rotation = 0
 
-local ShootingRange = vector2.new(600,600)
-local ShootingRange2 = vector2.new(600,600)
-local ShootingRange3 = vector2.new(600,600)
-local value = 0
-
-local ActualShootingRange = vector2.new(0,0)
+local shootingRange = 400
+local shootingAmplitude = 45
+local shootingRays = 11
+local rays
 
 function Noknockback()
 
@@ -117,19 +115,19 @@ function Infiniteammo(dt)
     end
 end
 
--- function displayTable(table)
---     for key, value in pairs(table) do
---         if type(value) == "table" then
---             -- If the value is another table, recursively display its content
---             print(key .. ":")
---             displayTable(value)
---         else
---             -- Print key-value pairs
---             print(key .. ": " .. tostring(value))
---         end
---     end
---     print("\n")
--- end
+function displayTable(table)
+    for key, value in pairs(table) do
+        if type(value) == "table" then
+            -- If the value is another table, recursively display its content
+            print(key .. ":")
+            displayTable(value)
+        else
+            -- Print key-value pairs
+            print(key .. ": " .. tostring(value))
+        end
+    end
+    print("\n")
+end
 
 -- function DistancePlayerObj(list)
 --     local playerX = list[1].x
@@ -149,34 +147,49 @@ function UpdatePlayer(dt, camera, world)
     camera:follow(ball.body:getPosition())
 
     PlayerPosition()
-
     if timer > 0 then --timer function
         timer = timer-dt
     end
 
-    --player - Mouse
-    CameraDirection = CameraCoordinate()
-    ShootingRange = CameraDirection
-    ShootingRange = vector2.normalize(ShootingRange)
-    ShootingRange = vector2.mult(ShootingRange, 100)
-    --Angle between player and mouse
-    rotation = math.atan2(CameraDirection.y, CameraDirection.x)
+        CameraDirection = CameraCoordinate()
+        rotation = math.atan2(CameraDirection.y, CameraDirection.x)
 
-    ActualShootingRange = vector2.add(ShootingRange, vector2.new(PlayerPosition()))
 
     --Player movemnts Using CAMERA as a reference
     if love.mouse.isDown(1) and ball.canshoot == true and timer <= 0 and ammo > 0 then
+        
 
-        ActualShootingRange = vector2.rotation(ShootingRange, rotation)
-        print(rotation)
+    
+        local rayAngleIncrement = shootingAmplitude / (shootingRays - 1)
+        local endIndex = math.floor((shootingRays - 1) / 2)
+        local startIndex = -endIndex
+    
+        rays = {}
+        for i = startIndex, endIndex, 1 do
+            local ray = vector2.new(shootingRange, 0)
+            ray = vector2.rotation(ray, math.rad(i * rayAngleIncrement) + rotation)
+            local ballPositionX, ballPositionY = ball.body:getPosition()
+            ray = vector2.add(ray, vector2.new(ballPositionX, ballPositionY))
+            table.insert(rays, ray)
+            --displayTable(ray)
+            --print(i * rayAngleIncrement + math.deg(rotation), " ", ray.x, " ", ray.y)
+        end
 
-        Ray = {}
 
-        local Wx, Wy = camera:getMousePosition()
-        world:rayCast( ball.x, ball.y, Wx, Wy, WorldRayCastCallback )
-        FindDistance(Ray)
-        SortTable(Ray)
-        SearchValue(Ray)
+        RayHitList = {}
+
+        -- local Wx, Wy = camera:getMousePosition()
+        --world:rayCast( ball.x, ball.y, Wx, Wy, WorldRayCastCallback )
+        for i = 1, #rays, 1 do
+            world:rayCast( ball.x, ball.y, rays[i].x, rays[i].y, WorldRayCastCallback)
+            FindDistance(RayHitList)
+            SortTable(RayHitList)
+            SearchValue(RayHitList)
+            RayHitList = {}
+        end
+        -- lworld:rayCast( ball.x, ball.y, Wx, Wy, WorldRayCastCallback )
+
+
         -- world:rayCast( ball.x, ball.y, Wx * math.cos(rotation), Wy * math.sin(rotation), WorldRayCastCallback )
         -- world:rayCast( ball.x, ball.y, Wx * math.cos(rotation), Wy * math.sin(rotation), WorldRayCastCallback )
 
@@ -239,7 +252,7 @@ function WorldRayCastCallback(fixture, x, y, xn, yn, fraction)
         fixture:getUserData().x = x
         fixture:getUserData().y = y
 
-        table.insert(Ray,hit)
+        table.insert(RayHitList,hit)
     end
 
 	return 1 -- Continues with ray cast through all shapes.
@@ -385,8 +398,8 @@ end
 function DrawTrajectory()
     local Wx, Wy = camera:getMousePosition()
     love.graphics.setColor(1,0.7,0.4)
+    --love.graphics.line(ball.x, ball.y, Wx, Wy)
     love.graphics.line(ball.x, ball.y, Wx, Wy)
-    love.graphics.line(ball.x, ball.y, ShootingRange.x, ShootingRange.y)
 end
 
 function DrawShootingZone()
@@ -396,7 +409,11 @@ function DrawShootingZone()
         -- RotateDisplayShootingZone("fill", ball.x, ball.y, 1, 1, rotation)
         -- RotateDisplayShootingZone("fill", ball.x, ball.y-100, 1, 1, rotation)
         -- RotateDisplayShootingZone("fill", ball.x, ball.y+100, 1, 1, rotation)
-        love.graphics.line(ball.x, ball.y, ActualShootingRange.x, ActualShootingRange.y)
+        --love.graphics.line(ball.x, ball.y, ActualShootingRange.x, ActualShootingRange.y)
+        
+        for i = 1, #rays, 1 do
+            love.graphics.line(ball.x, ball.y, rays[i].x, rays[i].y)
+        end
 
         DisplayShootingZone = false
     end
