@@ -48,7 +48,7 @@ function Updatetoggletimer(dt)
     if knockbacktoggletimer > 0 then
         knockbacktoggletimer = knockbacktoggletimer -dt
     end
-    end
+end
 
 function LoadPlayer(world)
 
