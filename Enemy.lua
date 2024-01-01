@@ -354,13 +354,13 @@ function BirdCollision(player,birdTriggerZone, birb)
         if CheckCollision(player,birdTriggerZone) then
             -- Activate the trigger
             birdtrigger.triggered = true
-            print("Trigger activated!")
+            --print("Trigger activated!")
         
             -- Activate the bird
             birb.x = 1400  -- Set the initial x-coordinate of the bird
             birb.y = 550  -- Set the initial y-coordinate of the bird
             birb.active = true
-            print("Enemy activated!")
+            --print("Enemy activated!")
         
         else
             birb.body:setPosition(birb.OriginalX, birb.OriginalY)
@@ -383,7 +383,7 @@ function BirdMovement(birb, playerposition)
             birb.chasing = true
     
             end
-            if birb. chasing then
+            if birb.chasing then
                 local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(birb.body:getPosition())))
                 local engineForce = vector2.mult (playerdirection,2500)
                 birb.body:applyForce(engineForce.x, engineForce.y)

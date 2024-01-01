@@ -2,9 +2,9 @@ require "vector2"
 
 local ball
 local timer = 0
-local CameraDirection = vector2.new(0,0)
+-- local CameraDirection = vector2.new(0,0)
 local Stranded = false
-local ammo = 30
+local ammo = 0
 local DisplayShootingZone = false
 local collected = false
 local ammoboxtrigger
@@ -19,9 +19,12 @@ local cheats= false
 local GravityChangin= false
 local rotation = 0
 
-local shootingRange = 400
-local shootingAmplitude = 45
-local shootingRays = 11
+
+-- Variables used for the rayCast
+local RayHitList = {}
+local shootingRange = 400 --400
+local shootingAmplitude = 45 --45
+local shootingRays = 11 --11
 local rays
 
 function Noknockback()
@@ -53,16 +56,15 @@ end
 function LoadPlayer(world)
 
     ball= {}
-    ball.body = love.physics.newBody(world, 300, -400, "dynamic")
-    ball.shape= love.physics.newCircleShape(30)
-    ball.fixture = love.physics.newFixture(ball.body, ball.shape, 1)
-    --ball.fixture:setFriction(0.02)
+    ball.body = love.physics.newBody(world, 128, 7542, "dynamic")
+    ball.shape= love.physics.newCircleShape(60)
+    ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0) -- 1 os the density which if it's diverse than zero will impact the mass accordingly to the given shape nad it's size
     ball.body:setMass(1)
-    ball.onground = false
     ball.body:setFixedRotation(true)
     ball.body:setLinearDamping(3)
     ball.fixture:setUserData(ball)
     ball.name = "Player"
+    ball.onground = false
     ball.ammonition = ammo
     ball.canshoot = true
     ball.x, ball.y = ball.body:getPosition()
@@ -89,15 +91,15 @@ function LoadAmmoBox(world)
 
 end
 
-function CameraCoordinate()
-    --From world coordinate to Camera Coordinates
-    --player - Mouse
-    local ball_x, ball_y = camera:toCameraCoords(ball.body:getPosition())
-    local CameraPlayerPos = vector2.new(ball_x, ball_y)
-    local CameraMousePos = vector2.new(love.mouse.getX(),love.mouse.getY())
-    local CameraDirection1 = vector2.sub(CameraMousePos, CameraPlayerPos)
+function UsingCameraCoordinate()
+    -- Mouse - Plyaer usign camera coordinates
 
-    return CameraDirection1
+    local ball_x, ball_y = camera:toCameraCoords(ball.body:getPosition())
+    local diffCoordX = love.mouse.getX() - ball_x
+    local diffCoordY = love.mouse.getY() - ball_y
+    local PlayerDirectionUsingCameraCoordinates = vector2.new(diffCoordX, diffCoordY)
+
+    return PlayerDirectionUsingCameraCoordinates
 end
 
 function PlayerPosition()
@@ -144,21 +146,26 @@ end
 -- end
 
 function UpdatePlayer(dt, camera, world)
+    -- Binds the camera to the player position
     camera:follow(ball.body:getPosition())
 
+    --Updates the ball.x and ball.y used for the enemy
     PlayerPosition()
+
+    --
     if timer > 0 then --timer function
         timer = timer-dt
     end
 
-        CameraDirection = CameraCoordinate()
-        rotation = math.atan2(CameraDirection.y, CameraDirection.x)
+    DirecitonalVector = UsingCameraCoordinate()
+
+    rotation = math.atan2(DirecitonalVector.y, DirecitonalVector.x)
 
 
     --Player movemnts Using CAMERA as a reference
     if love.mouse.isDown(1) and ball.canshoot == true and timer <= 0 and ammo > 0 then
         
-
+        -- Calculating the angle between a given number of rays and its amplitude    
     
         local rayAngleIncrement = shootingAmplitude / (shootingRays - 1)
         local endIndex = math.floor((shootingRays - 1) / 2)
@@ -176,32 +183,29 @@ function UpdatePlayer(dt, camera, world)
         end
 
 
-        RayHitList = {}
+        -- Resets the Ray hit lists
 
-        -- local Wx, Wy = camera:getMousePosition()
-        --world:rayCast( ball.x, ball.y, Wx, Wy, WorldRayCastCallback )
+        -- Cycles through all the correctly rotated table of rays
         for i = 1, #rays, 1 do
+            -- ray casting
             world:rayCast( ball.x, ball.y, rays[i].x, rays[i].y, WorldRayCastCallback)
+            -- finding the distance -> sprting the table using the distance -> chekcing if enemies can be killed
             FindDistance(RayHitList)
             SortTable(RayHitList)
             SearchValue(RayHitList)
+
             RayHitList = {}
         end
-        -- lworld:rayCast( ball.x, ball.y, Wx, Wy, WorldRayCastCallback )
 
-
-        -- world:rayCast( ball.x, ball.y, Wx * math.cos(rotation), Wy * math.sin(rotation), WorldRayCastCallback )
-        -- world:rayCast( ball.x, ball.y, Wx * math.cos(rotation), Wy * math.sin(rotation), WorldRayCastCallback )
-
-        timer = 1
+        timer = 1  --2 reload timer
         DisplayShootingZone = true
-        ball.canshoot= false
+        ball.canshoot= false --false
 
-        if vector2.magnitude(CameraDirection) > 2 then
+        if vector2.magnitude(DirecitonalVector) > 2 then
 
-            CameraDirection = vector2.normalize(CameraDirection)
-            local velocity =  vector2.mult(CameraDirection, -1600)
-            ball.body:applyLinearImpulse(velocity.x, velocity.y - 200)
+            DirecitonalVector = vector2.normalize(DirecitonalVector)
+            local velocity =  vector2.mult(DirecitonalVector, -6000)
+            ball.body:applyLinearImpulse(velocity.x, velocity.y -200)
 
         else
             ball.body:setLinearVelocity(0,0)
@@ -319,6 +323,9 @@ function love.keypressed(key)
         GravityChangin = not GravityChangin
     end
 
+    if key == "z" then
+        print(ball.body:getPosition())
+    end
 
 end
 
@@ -514,3 +521,8 @@ function DrawAmmoBox()
         love.graphics.print("+10", 423,510,0,2,2 )
     end
 end
+
+function love.mousepressed(x, y, button, istouch)
+    print("mouse pressed at: " .. x .. ", " .. y)
+end
+
