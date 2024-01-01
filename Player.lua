@@ -4,7 +4,7 @@ local ball
 local timer = 0
 -- local CameraDirection = vector2.new(0,0)
 local Stranded = false
-local ammo = 0
+local ammo = 40
 local DisplayShootingZone = false
 local collected = false
 local ammoboxtrigger
