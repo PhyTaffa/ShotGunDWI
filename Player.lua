@@ -18,6 +18,7 @@ local knockbacktoggletimer = 0.1
 local cheats= false
 local GravityChangin= false
 local rotation = 0
+local anmmoConsumption = true
 
 
 -- Variables used for the rayCast
@@ -56,12 +57,12 @@ end
 function LoadPlayer(world)
 
     ball= {}
-    ball.body = love.physics.newBody(world, 128, 7542, "dynamic")
-    ball.shape= love.physics.newCircleShape(60)
+    ball.body = love.physics.newBody(world, 1000, 7542, "dynamic")
+    ball.shape= love.physics.newCircleShape(50)
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0) -- 1 os the density which if it's diverse than zero will impact the mass accordingly to the given shape nad it's size
     ball.body:setMass(1)
     ball.body:setFixedRotation(true)
-    ball.body:setLinearDamping(3)
+    ball.body:setLinearDamping(2)
     ball.fixture:setUserData(ball)
     ball.name = "Player"
     ball.onground = false
@@ -111,9 +112,7 @@ end
 function Infiniteammo(dt)
 
     if love.keyboard.isDown("a") then
-    
-        ammo = 99999
-        io.write("added 99999 ammo to the total")
+        anmmoConsumption = false
     end
 end
 
@@ -145,7 +144,7 @@ end
 
 -- end
 
-function UpdatePlayer(dt, camera, world)
+function UpdatePlayer(dt, camera, world, CurrentState)
     -- Binds the camera to the player position
     camera:follow(ball.body:getPosition())
 
@@ -197,21 +196,34 @@ function UpdatePlayer(dt, camera, world)
             RayHitList = {}
         end
 
-        timer = 1  --2 reload timer
+        timer = 1.1  --2 reload timer
         DisplayShootingZone = true
         ball.canshoot= false --false
 
         if vector2.magnitude(DirecitonalVector) > 2 then
 
             DirecitonalVector = vector2.normalize(DirecitonalVector)
-            local velocity =  vector2.mult(DirecitonalVector, -6000)
-            ball.body:applyLinearImpulse(velocity.x, velocity.y -200)
+            ball.body:setLinearVelocity(0,0)
+            local velocity =  vector2.mult(DirecitonalVector, -3300)
 
+            local ball_x, ball_y = camera:toCameraCoords(ball.body:getPosition())
+            print(velocity.y)
+
+            if love.mouse.getY() <= ball_y then
+                ball.body:applyLinearImpulse(velocity.x, velocity.y)
+            else
+                velocity.y = velocity.y - 200
+                print(velocity.y)
+                ball.body:applyLinearImpulse(velocity.x, velocity.y )
+            end
+            
         else
             ball.body:setLinearVelocity(0,0)
         end
 
-        ammo=ammo - 1
+        if anmmoConsumption then
+            ammo=ammo - 1
+        end
     end
     
 
@@ -237,6 +249,7 @@ function UpdatePlayer(dt, camera, world)
 
     if ammo == 0 and ball.body:getLinearVelocity() == 0 then
         Stranded = true
+        CurrentState = STATE_STRANDED
     end
 
     if cheats == false then
@@ -370,7 +383,7 @@ function CheatMovements(world)
     if love.keyboard.isDown("up") then
         world:setGravity( 0, 0 )
         GravityChangin = true
-        local jumpForce = vector2.new(0, -1000)
+        local jumpForce = vector2.new(0, -2000)
         ball.body:applyForce(jumpForce.x, jumpForce.y)
     end
 
@@ -495,7 +508,7 @@ function BeginContactPlayer(fixtureA, fixtureB)
 end
 
 function UpdateWinCondition()
-    return win
+    return STATE_WON
 end
 
 

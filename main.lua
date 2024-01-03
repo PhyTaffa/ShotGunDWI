@@ -10,6 +10,15 @@ local Stranded = false
 local win = false
 local ball
 
+-- Game States
+STATE_IN_GAME = 1
+STATE_MAIN_MENU = 2
+STATE_WON = 3
+STATE_STRANDED = 4
+STATE_IN_GAME_MENU = 5
+STATE_CREDITS = 6
+
+local CurrentState = STATE_IN_GAME
 -- tiled implementation, should be moved away from the main
 local sti = require "sti"
 local Boundries = {}
@@ -24,7 +33,7 @@ love.window.setMode( 1920, 1080)
 function love.load()
 
     love.physics.setMeter(64)
-    world = love.physics.newWorld(0, 90 * love.physics.getMeter(), true)
+    world = love.physics.newWorld(0, 150 * love.physics.getMeter(), true)
 
     world:setCallbacks(BeginContact, nil, nil, nil)
 
@@ -171,65 +180,71 @@ end
 
 
 function love.update(dt)
-    camera:update(dt)
-    
-    UpdatePlayer(dt,camera,world)
-    UpdateTriggerPosition()
-    Stranded = UpdateGameStatus()
-    win = UpdateWinCondition()
 
-    -- if love.keyboard.isDown("e") then
-    --     Difference = vector2.new(PlayerPosition()-EnemyPosition())
-    --     print(Difference.x," ", Difference.y,"\n")
-    -- end
-    local playerx, playery = PlayerPosition()
-    UpdateEnemies(dt, playerx, playery,ball)
+    --if CurrentState == STATE_IN_GAME then
+        camera:update(dt)
+        
+        UpdatePlayer(dt, camera, world, CurrentState)
+        UpdateTriggerPosition()
+        -- CurrentState = UpdateGameStatus()
+        CurrentState = UpdateWinCondition()
 
-    --cheats
-    -- FoxBehaviour(dt)
-    Infiniteammo(dt)
-    Updatetoggletimer(dt)
-    Noknockback()
+        -- if love.keyboard.isDown("e") then
+        --     Difference = vector2.new(PlayerPosition()-EnemyPosition())
+        --     print(Difference.x," ", Difference.y,"\n")
+        -- end
+        local playerx, playery = PlayerPosition()
+        UpdateEnemies(dt, playerx, playery,ball)
 
-    map:update(dt)
+        --cheats
+        -- FoxBehaviour(dt)
+        Infiniteammo(dt)
+        Updatetoggletimer(dt)
+        Noknockback()
+
+        map:update(dt)
+    --end
     world:update(dt)
 end
 
 function love.draw()
 
-    camera:attach() 
-    love.graphics.push()
+    
     --love.graphics.translate(100,100)
+    -- if CurrentState == STATE_IN_GAME then
 
-    if win == false then
-        if Stranded == false then-- everything that is displayed during the game session
+        camera:attach() 
+        love.graphics.push()
+        map:drawLayer(map.layers["Ground"])
 
-            map:drawLayer(map.layers["Ground"])
-            map:drawLayer(map.layers["platforms"])
-            map:drawLayer(map.layers["flora"])
-            map:drawLayer(map.layers["car"])
+        map:drawLayer(map.layers["flora"])
+        map:drawLayer(map.layers["car"])
+        map:drawLayer(map.layers["platforms"])
             --DrawMap()
-            DrawAmmoBox()
-            DrawEnemy()
+        DrawAmmoBox()
+        DrawEnemy()
 
-            DrawPlayer()
-            DrawTrajectory()
-            DrawShootingZone()
-            
+        DrawPlayer()
+        DrawTrajectory()
+        DrawShootingZone()
+        
 
         love.graphics.pop()
         camera:detach()    
+        
         DrawUI()
-        else--what you see when you die
-            GamingOver()
-            love.graphics.pop()
-            camera:detach()
-        end
+        
+    -- end
 
-        else --winning
-            Winning()
-            love.graphics.pop()
-            camera:detach()
-    end
+    -- if CurrentState == STATE_STRANDED then
+    --     GamingOver()
+    --     love.graphics.pop()
+    --     camera:detach()
+    -- end
+    -- if CurrentState == STATE_WON then --winning
+    --     Winning()
+    --     love.graphics.pop()
+    --     camera:detach()
+    -- end
     
 end

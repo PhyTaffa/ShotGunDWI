@@ -209,16 +209,16 @@ function LoadMap(world)
     -- RightWall.type= "terrain"
     -- RightWall.distance=0
 
-    -- WinningZone = {}
-    -- WinningZone.body = love.physics.newBody(world, 2550, -905, "static")
-    -- WinningZone.shape=love.physics.newRectangleShape(100, 200)
-    -- WinningZone.fixture = love.physics.newFixture(WinningZone.body, WinningZone.shape, 1)
-    -- WinningZone.fixture:setRestitution(0.5)
-    -- WinningZone.fixture:setSensor(true)
-    -- WinningZone.fixture:setUserData(WinningZone)
-    -- WinningZone.name = "WinningZone"
-    -- WinningZone.type= "trigger"
-    -- WinningZone.distance=0
+    WinningZone = {}
+    WinningZone.body = love.physics.newBody(world, 6848, 0, "static")
+    WinningZone.shape=love.physics.newRectangleShape(100, 200)
+    WinningZone.fixture = love.physics.newFixture(WinningZone.body, WinningZone.shape, 1)
+    WinningZone.fixture:setRestitution(0.5)
+    WinningZone.fixture:setSensor(true)
+    WinningZone.fixture:setUserData(WinningZone)
+    WinningZone.name = "WinningZone"
+    WinningZone.type= "trigger"
+    WinningZone.distance=0
 
 
 
@@ -269,6 +269,7 @@ function GamingOver()
     love.graphics.setColor(1,1,1)
     love.graphics.print("Your life is nothing, you serve zero purpose.\nYou should kill yourself, NOW!", ballX-400, ballY-300,0,2,2)
     love.graphics.draw(ltg, ballX-400, ballY-200)
+
 
 end
 
