@@ -343,7 +343,7 @@ function WorldRayCastCallback(fixture, x, y, xn, yn, fraction)
     
     if fixture:getUserData().type == "terrain" or fixture:getUserData().type == "enemy" then-- enmey x,y expressed in world coordinate
         fixture:getUserData().x = x
-        fixture:getUserData().y = y
+        fixture:getUserData().y = y        
 
         table.insert(RayHitList,hit)
     end
@@ -547,8 +547,18 @@ function BeginContactPlayer(fixtureA, fixtureB)
     end
 
     if fixtureA:getUserData().name == "detectionZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-        FoxUncovering(fixtureA:getUserData().attachment)
+        local currentFixture = fixtureA:getUserData()
+
+        if currentFixture.typeOfEnemy == "fox" then
+            FoxUncovering(currentFixture.attachment)
+        end
+
+        if currentFixture.typeOfEnemy == "bird" then
+            BirdActivating(currentFixture.attachment)
+        end
+
     end
+
 
     if fixtureA:getUserData().name== "hurttriggerL" and fixtureB: getUserData().name == "Player" then
         ball.body:setLinearVelocity(knockbacknegx, knockbacky)
@@ -599,14 +609,32 @@ function BeginContactPlayer(fixtureA, fixtureB)
     end
 end
 
+function EndContactPlayer(fixtureA, fixtureB)
+    if fixtureA:getUserData().name == "detectionZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
+        local currentFixture = fixtureA:getUserData()
+
+        if currentFixture.typeOfEnemy == "fox" then
+            FoxUncovering(currentFixture.attachment)
+        end
+
+        if currentFixture.typeOfEnemy == "bird" then
+            BirdDeactivating(currentFixture.attachment)
+        end
+
+    end
+end
+
 function UpdateWinCondition()
     return STATE_WON
 end
 
 
 function KillEnemy(enemy)
-    enemy.killed = true
     enemy.body:destroy()
+
+    if enemy.name == "fox" then
+        print("suca coglione")
+    end
 end
 
 

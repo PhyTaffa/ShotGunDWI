@@ -9,8 +9,8 @@ return {
   height = 120,
   tilewidth = 64,
   tileheight = 64,
-  nextlayerid = 34,
-  nextobjectid = 420,
+  nextlayerid = 35,
+  nextobjectid = 423,
   properties = {},
   tilesets = {
     {
@@ -1054,6 +1054,48 @@ return {
           shape = "rectangle",
           x = 2560,
           y = 7232,
+          width = 128,
+          height = 64,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 420,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 3456,
+          y = 4544,
+          width = 128,
+          height = 64,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        }
+      }
+    },
+    {
+      type = "objectgroup",
+      draworder = "topdown",
+      id = 34,
+      name = "BirdObj",
+      class = "",
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = 0,
+      parallaxx = 1,
+      parallaxy = 1,
+      properties = {},
+      objects = {
+        {
+          id = 422,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 1472,
+          y = 5184,
           width = 128,
           height = 64,
           rotation = 0,
