@@ -215,6 +215,7 @@ function love.load()
                 fox.shape = love.physics.newRectangleShape(obj.width,obj.height)
                 fox.fixture = love.physics.newFixture(fox.body, fox.shape, 1)
                 fox.fixture:setUserData(fox)
+                fox.body:setFixedRotation(true)
                 fox.index = i
                 fox.name = "fox"
                 fox.type = "enemy"
@@ -275,9 +276,14 @@ function love.draw()
 
         camera:attach() 
         love.graphics.push()
+        map:drawLayer(map.layers["background"])
         map:drawLayer(map.layers["Ground"])
-
+        
+        map:drawLayer(map.layers["florathree"])
+        map:drawLayer(map.layers["floratwo"])
         map:drawLayer(map.layers["flora"])
+        
+        map:drawLayer(map.layers["foxbush"])
         map:drawLayer(map.layers["car"])
         map:drawLayer(map.layers["platforms"])
         --DrawMap()

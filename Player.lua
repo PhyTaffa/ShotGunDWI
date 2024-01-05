@@ -580,9 +580,10 @@ function BeginContactPlayer(fixtureA, fixtureB)
     end
 
     if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-        timer = 0.3
-        print("Terrain contact")
-
+        if fixtureB:getUserData().body:getY() <= fixtureA:getUserData().body:getY() - 32 then
+            timer = 0.3
+            print("Terrain contact")
+        end
     end
 
     -- fox
