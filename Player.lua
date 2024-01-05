@@ -20,6 +20,9 @@ local GravityChangin= false
 local rotation = 0
 local anmmoConsumption = true
 
+--Tiled stuff
+local AmmoBoxes
+local AmmoBoxImg
 
 -- Variables used for the rayCast
 local RayHitList = {}
@@ -27,6 +30,10 @@ local shootingRange = 400 --400
 local shootingAmplitude = 45 --45
 local shootingRays = 11 --11
 local rays
+
+--Camera dragging
+local MaxCameraDisplacment = vector2.new(0, 0)
+local targetToFollowX, targetToFollowY
 
 function Noknockback()
 
@@ -58,7 +65,7 @@ function LoadPlayer(world)
 
     ball= {}
     ball.body = love.physics.newBody(world, 1000, 7542, "dynamic")
-    ball.shape= love.physics.newCircleShape(50)
+    ball.shape= love.physics.newCircleShape(32)
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0) -- 1 os the density which if it's diverse than zero will impact the mass accordingly to the given shape nad it's size
     ball.body:setMass(1)
     ball.body:setFixedRotation(true)
@@ -67,7 +74,6 @@ function LoadPlayer(world)
     ball.name = "Player"
     ball.onground = false
     ball.ammonition = ammo
-    ball.canshoot = true
     ball.x, ball.y = ball.body:getPosition()
 
 
@@ -76,19 +82,22 @@ function LoadPlayer(world)
     return ball
 end
 
-function LoadAmmoBox(world)
+function LoadAmmoBox(AmmoBoxs)
 
-    ammoboxtrigger = {}
-    ammoboxtrigger.body = love.physics.newBody(world,450,525,"static")
-    ammoboxtrigger.shape = love.physics.newRectangleShape(50,50)
-    ammoboxtrigger.fixture = love.physics.newFixture(ammoboxtrigger.body,ammoboxtrigger.shape,2)
-    ammoboxtrigger.fixture:setSensor (true)
-    ammoboxtrigger.fixture:setUserData(ammoboxtrigger)
-    ammoboxtrigger.name = "Ammo"
-    ammoboxtrigger.try = 1
-    ammoboxtrigger.type = "ammonistions"
-    ammoboxtrigger.collected=false
-    ammoboxtrigger.distance = 0
+    AmmoBoxes = AmmoBoxs
+
+    -- ammoboxtrigger = {}
+    -- ammoboxtrigger.body = love.physics.newBody(world,450,525,"static")
+    -- ammoboxtrigger.shape = love.physics.newRectangleShape(64, 64)
+    -- ammoboxtrigger.fixture = love.physics.newFixture(ammoboxtrigger.body,ammoboxtrigger.shape,2)
+    -- ammoboxtrigger.fixture:setSensor (true)
+    -- ammoboxtrigger.fixture:setUserData(ammoboxtrigger)
+    -- ammoboxtrigger.name = "Ammo"
+    -- ammoboxtrigger.type = "ammonistions"
+    -- ammoboxtrigger.collected=false
+    -- ammoboxtrigger.distance = 0
+
+    AmmoBoxImg = love.graphics.newImage("Immages/AmmoBoxImg.png")
 
 end
 
@@ -146,7 +155,8 @@ end
 
 function UpdatePlayer(dt, camera, world, CurrentState)
     -- Binds the camera to the player position
-    camera:follow(ball.body:getPosition())
+    targetToFollowX, targetToFollowY = ball.body:getPosition()
+    
 
     --Updates the ball.x and ball.y used for the enemy
     PlayerPosition()
@@ -159,10 +169,12 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     DirecitonalVector = UsingCameraCoordinate()
 
     rotation = math.atan2(DirecitonalVector.y, DirecitonalVector.x)
-
+    local shootingRangeVector = vector2.new(shootingRange, 0)
+    MaxCameraDisplacment = vector2.rotation(shootingRangeVector, math.rad(rotation))
+    --MaxCameraDisplacment = vector2.add(MaxCameraDisplacment, vector2.new(ball.body:getPosition()))
 
     --Player movemnts Using CAMERA as a reference
-    if love.mouse.isDown(1) and ball.canshoot == true and timer <= 0 and ammo > 0 then
+    if love.mouse.isDown(1) and timer <= 0 and ammo > 0 then
         
         -- Calculating the angle between a given number of rays and its amplitude    
     
@@ -196,9 +208,7 @@ function UpdatePlayer(dt, camera, world, CurrentState)
             RayHitList = {}
         end
 
-        timer = 1.1  --2 reload timer
-        DisplayShootingZone = true
-        ball.canshoot= false --false
+        
 
         if vector2.magnitude(DirecitonalVector) > 2 then
 
@@ -224,8 +234,16 @@ function UpdatePlayer(dt, camera, world, CurrentState)
         if anmmoConsumption then
             ammo=ammo - 1
         end
+        
+        timer = 1.5  --1.5 reload timer
+        DisplayShootingZone = true
     end
     
+    if love.mouse.isDown(2) then
+        targetToFollowX, targetToFollowY = MoveCamera(MaxCameraDisplacment, camera)
+    end
+
+    camera:follow(targetToFollowX, targetToFollowY, rotation)
 
 
     local contacts =  ball.body:getContacts()
@@ -238,7 +256,6 @@ function UpdatePlayer(dt, camera, world, CurrentState)
             local normal = vector2.new(contacts[i]:getNormal())
             if normal.y == -1 then
                 groundcontact = true
-                ball.canshoot = true
             end
         end
 
@@ -257,6 +274,65 @@ function UpdatePlayer(dt, camera, world, CurrentState)
 
     end
 
+end
+
+function MoveCamera(MaxCameraDisplacment, camera, rotation)
+    --Will check for the camera to not move outside the said range, the one of the shootingRange
+    --local ActualCameraDisplacment = vector2.new(MaxCameraDisplacment)
+
+    --mouse position
+    local Wx, Wy = camera:getMousePosition()
+    print(Wx, " ", Wy)
+    local PlayerPos = vector2.new(ball.body:getPosition())
+    -- ball - mouse
+    -- local playerToMouseX = Wx - PlayerPos.x 
+    -- local playerToMouseY = Wy - PlayerPos.y
+    -- local playerToMouse = vector2.new(playerToMouseX, playerToMouseY)
+    -- local yes = vector2.add(playerToMouse, PlayerPos)
+    local yes1 = vector2.new(Wx, Wy)
+
+    local correctMAxCameraDisplacent = vector2.new(0, 0)
+    correctMAxCameraDisplacent = vector2.add(MaxCameraDisplacment, PlayerPos)
+    -- correctMAxCameraDisplacent = vector2.rotation(correctMAxCameraDisplacent, rotation)
+
+----------------- vettore associato alla posizione del mouse, controllo se la magnitudo supera la posizione detta se si, allora con un vettore preciiso sommato alla posizione del player
+    local camMove = vector2.new(shootingRange, 0)
+    camMove = vector2.rotation(camMove, math.rad(rotation))
+    local ballPositionX, ballPositionY = ball.body:getPosition()
+    camMove = vector2.add(camMove, vector2.new(ballPositionX, ballPositionY))
+    local m = vector2.magnitude(camMove)
+
+    --print("playerToMouse ", playerToMouse.x, " ", playerToMouse.y)
+
+    local MouseLength = vector2.magnitude(yes1)
+
+    local finalValueX, finalValueY
+    -- local MagnitudeOfTheDisplacment 
+    -- local PushingLength = playerToMouse
+
+    if vector2.magnitude(yes1) > shootingRange then
+
+        finalValueX = camMove.x
+        finalValueY = camMove.y
+
+        --yes = correctMAxCameraDisplacent
+    end
+
+    -- targetToFollowX = PushingLength.x
+    -- targetToFollowY = PushingLength.y
+
+    targetToFollowX = finalValueX.x
+    targetToFollowY = finalValueY.y
+
+    --print("Target", targetToFollowX, targetToFollowY)
+
+    -- targetToFollowX = Wx
+    -- targetToFollowY = Wy
+
+    
+    --camera:follow(targetToFollowX, targetToFollowY)
+
+    return targetToFollowX, targetToFollowY
 end
 
 
@@ -360,9 +436,9 @@ end
 function CheatMovements(world)
 
 
-    if love.mouse.isDown(2) then
-        GravityChangin = not GravityChangin
-    end
+    -- if love.mouse.isDown(2) then
+    --     GravityChangin = not GravityChangin
+    -- end
 
     if GravityChangin == false then
         world:setGravity( 0, 70 * love.physics.getMeter() )
@@ -453,22 +529,25 @@ function DrawUI()
     local PlayerX, PlayerY = PlayerPosition()
 
     -- get screen width/height
-    local sw = love.graphics.getWidth()
-    local sh = love.graphics.getHeight()
+    local sw = love.graphics:getWidth()
+    local sh = love.graphics:getHeight()
     
     love.graphics.setColor(1,1,1)
     -- set font
-    love.graphics.setFont(love.graphics.newFont(20))
-    love.graphics.print("ammo: ".. ammo, sw-150, sh/2,0,1,1 )
+    love.graphics.setFont(love.graphics.newFont(25))
+    love.graphics.print("ammo: ".. ammo, sw/2 + sw/3, sh/2,0,1,1 )
 
 end
 
 function BeginContactPlayer(fixtureA, fixtureB)
 
     if fixtureA:getUserData().name == "Ammo" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-
         AmmoColleciton(fixtureA:getUserData())
+        -- add collection text, +10
+    end
 
+    if fixtureA:getUserData().name == "detectionZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
+        FoxUncovering(fixtureA:getUserData().attachment)
     end
 
     if fixtureA:getUserData().name== "hurttriggerL" and fixtureB: getUserData().name == "Player" then
@@ -501,9 +580,21 @@ function BeginContactPlayer(fixtureA, fixtureB)
     end
 
     if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-
+        timer = 0.3
         print("Terrain contact")
 
+    end
+
+    -- fox
+    if fixtureA:getUserData().type == "enemy" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
+        local enemyX = fixtureA:getUserData().body:getX()
+        local playerX = fixtureB:getUserData().body:getX()
+
+        if enemyX > playerX then
+            ball.body:setLinearVelocity(knockbacknegx, knockbacky)
+        else
+            ball.body:setLinearVelocity(-knockbacknegx, knockbacky)
+        end
     end
 end
 
@@ -521,21 +612,23 @@ end
 function AmmoColleciton(fixtureA)
     fixtureA.body.destroy(fixtureA.body)
     ammo = ammo + 10
-    collected = true
+    fixtureA.collected = true
 end
 
 
 function DrawAmmoBox()
-    if not collected then
-        love.graphics.setColor(1,1,0)
-        love.graphics.polygon("fill", ammoboxtrigger.body:getWorldPoints(ammoboxtrigger.shape:getPoints()))
-        love.graphics.setColor(0,0,0)
-        love.graphics.setFont(love.graphics.newFont())
-        love.graphics.print("+10", 423,510,0,2,2 )
+    for i = 1, #AmmoBoxes do
+
+        local CurrentAmmoBox = AmmoBoxes[i]
+
+        if CurrentAmmoBox.collected == false then
+            love.graphics.setColor(1,1,1)
+            love.graphics.draw(AmmoBoxImg, CurrentAmmoBox.body:getX()-32, CurrentAmmoBox.body:getY()-32)
+        end
     end
 end
 
-function love.mousepressed(x, y, button, istouch)
-    print("mouse pressed at: " .. x .. ", " .. y)
-end
+-- function love.mousepressed(x, y, button, istouch)
+--     print("mouse pressed at: " .. x .. ", " .. y)
+-- end
 

@@ -70,3 +70,4 @@ function vector2.rotation(vec, n)
     result.y = vec.x * math.sin(n) + vec.y * math.cos(n)
     return result
 end
+

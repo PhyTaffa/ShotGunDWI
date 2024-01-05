@@ -270,7 +270,6 @@ function GamingOver()
     love.graphics.print("Your life is nothing, you serve zero purpose.\nYou should kill yourself, NOW!", ballX-400, ballY-300,0,2,2)
     love.graphics.draw(ltg, ballX-400, ballY-200)
 
-
 end
 
 function Winning()

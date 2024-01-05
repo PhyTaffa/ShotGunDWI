@@ -26,10 +26,14 @@ local grassPlatforms = {}
 local rockPlatforms = {}
 local icePlatforms = {}
 local GroundObjs = {}
+local AmmoBoxs = {}
+local AmmoBoxImg
+local foxes = {}
+
 --
 
-love.window.setMode( 1920, 1080)
---love.window.setFullscreen(true)
+--love.window.setMode( 1920, 1080)
+love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
@@ -41,15 +45,14 @@ function love.load()
     camera:setFollowLerp(0.2)
     camera:setFollowLead(10)
     camera:setFollowStyle('NO_DEADZONE')
-    camera:setBounds(0, 0, 3840, 7680)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
+    --camera:setBounds(0, 0, 3840, 7680)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
 
 
     ball = LoadPlayer(world)
 
-    LoadEnemies(world)
 
     LoadMap(world)
-    LoadAmmoBox(world)
+    --LoadAmmoBox(world)
 
     -- tiled stuff to be moved, possibly idk if necessary to be kept on main
     map = sti("map/draft.lua", {"box2d"})
@@ -169,6 +172,63 @@ function love.load()
     end
 
 
+    --AmmoBoxImg = love.graphics.newImage("Immages/AmmoBoxImg.png")
+
+    if map.layers['AmmoBoxObj'] then
+
+        for i, obj in pairs(map.layers['AmmoBoxObj'].objects) do
+            AmmoBox = {}
+
+
+            if obj.shape == "rectangle" then
+
+                AmmoBox.body = love.physics.newBody(world, obj.x + obj.width / 2, obj.y + obj.height / 2, "static")
+                AmmoBox.shape = love.physics.newRectangleShape(obj.width,obj.height)
+                AmmoBox.fixture = love.physics.newFixture(AmmoBox.body, AmmoBox.shape, 1)
+                AmmoBox.fixture:setUserData(AmmoBox)
+                AmmoBox.fixture:setSensor(true)
+                AmmoBox.index = i
+                AmmoBox.name = "Ammo"
+                AmmoBox.type = "collectible"
+                AmmoBox.collected = false
+                AmmoBox.distance = 0
+
+                table.insert(AmmoBoxs, AmmoBox)
+            end
+
+        end
+        --return Boundries, wall
+    end
+
+    LoadAmmoBox(AmmoBoxs)
+
+    -- Enemies:
+    --         Fox
+    if map.layers['FoxObj'] then
+
+        for i, obj in pairs(map.layers['FoxObj'].objects) do
+            local fox = {}
+
+            if obj.shape == "rectangle" then
+
+                fox.body = love.physics.newBody(world, obj.x + obj.width / 2, obj.y + obj.height / 2, "dynamic")
+                fox.shape = love.physics.newRectangleShape(obj.width,obj.height)
+                fox.fixture = love.physics.newFixture(fox.body, fox.shape, 1)
+                fox.fixture:setUserData(fox)
+                fox.index = i
+                fox.name = "fox"
+                fox.type = "enemy"
+                fox.distance = 0
+                fox.Readytimer = 2.5
+                fox.attackTimer = 1
+                fox.uncovered = false
+
+                table.insert(foxes, fox)
+            end
+        end
+    end
+
+    LoadEnemies(world, foxes)
     
 
 end
@@ -194,7 +254,7 @@ function love.update(dt)
         --     print(Difference.x," ", Difference.y,"\n")
         -- end
         local playerx, playery = PlayerPosition()
-        UpdateEnemies(dt, playerx, playery,ball)
+        UpdateEnemies(dt, playerx, playery,ball, world)
 
         --cheats
         -- FoxBehaviour(dt)
@@ -220,10 +280,10 @@ function love.draw()
         map:drawLayer(map.layers["flora"])
         map:drawLayer(map.layers["car"])
         map:drawLayer(map.layers["platforms"])
-            --DrawMap()
-        DrawAmmoBox()
+        --DrawMap()
+        
         DrawEnemy()
-
+        DrawAmmoBox()
         DrawPlayer()
         DrawTrajectory()
         DrawShootingZone()
