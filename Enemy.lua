@@ -299,12 +299,12 @@ function FoxBehaviourTiled(dt)
 
                         -- Changes direction
                         if Xplayer >= CurrentFox.body:getX() then
-                            CurrentFox.body:applyLinearImpulse(500, -1800)
+                            CurrentFox.body:applyLinearImpulse(900, -3500)
                             CurrentFox.Readytimer = 2.5
                             CurrentFox.attackTimer = 1
                             --print("right move")
                         else
-                            CurrentFox.body:applyLinearImpulse(-500, -1800)
+                            CurrentFox.body:applyLinearImpulse(-900, -3500)
                             CurrentFox.Readytimer = 2.33
                             CurrentFox.attackTimer = 1
                             --print("left move")
@@ -456,7 +456,9 @@ function DrawEnemy()
     for i = 1, #DetectionZones do
 
         local CurrentDetectionZone = DetectionZones[i]
-        love.graphics.rectangle("line", CurrentDetectionZone.x - CurrentDetectionZone.w/2 , CurrentDetectionZone.y - CurrentDetectionZone.h/2, CurrentDetectionZone.w, CurrentDetectionZone.h)
+        if CurrentDetectionZone.attachment.uncovered == false then
+            love.graphics.rectangle("line", CurrentDetectionZone.x - CurrentDetectionZone.w/2 , CurrentDetectionZone.y - CurrentDetectionZone.h/2, CurrentDetectionZone.w, CurrentDetectionZone.h)
+        end
     end
 
 end

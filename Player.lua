@@ -49,7 +49,7 @@ function Noknockback()
             knockbacktoggle = false
             knockbacknegx = -1200
             knockbackposx = 1200
-            knockbacky = -1200
+            knockbacky = -2800
             knockbacktoggletimer = 1
         end
 end
