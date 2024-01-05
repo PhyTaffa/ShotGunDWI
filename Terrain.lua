@@ -11,7 +11,7 @@ local bgm
 
 function LoadMap(world)
 
-    bgm = love.audio.newSource("environment.wav", "stream")
+    bgm = love.audio.newSource("/sounds/environment.wav", "stream")
     bgm:setLooping(true)
     love.audio.play(bgm)
 

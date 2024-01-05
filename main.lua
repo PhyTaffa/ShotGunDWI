@@ -29,7 +29,6 @@ local GroundObjs = {}
 local AmmoBoxs = {}
 local AmmoBoxImg
 local foxes = {}
-local birds = {}
 
 --
 
@@ -40,13 +39,13 @@ function love.load()
     love.physics.setMeter(64)
     world = love.physics.newWorld(0, 150 * love.physics.getMeter(), true)
 
-    world:setCallbacks(BeginContact, EndContact, nil, nil)
+    world:setCallbacks(BeginContact, nil, nil, nil)
 
     camera = camera()
     camera:setFollowLerp(0.2)
     camera:setFollowLead(10)
     camera:setFollowStyle('NO_DEADZONE')
-    camera:setBounds(0, 0, 3840, 7680)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
+    --camera:setBounds(0, 0, 3840, 7680)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
 
 
     ball = LoadPlayer(world)
@@ -204,7 +203,7 @@ function love.load()
     LoadAmmoBox(AmmoBoxs)
 
     -- Enemies:
-    --         Bird
+    --         Fox
     if map.layers['FoxObj'] then
 
         for i, obj in pairs(map.layers['FoxObj'].objects) do
@@ -216,7 +215,6 @@ function love.load()
                 fox.shape = love.physics.newRectangleShape(obj.width,obj.height)
                 fox.fixture = love.physics.newFixture(fox.body, fox.shape, 1)
                 fox.fixture:setUserData(fox)
-                fox.body:setFixedRotation(true)
                 fox.index = i
                 fox.name = "fox"
                 fox.type = "enemy"
@@ -230,42 +228,9 @@ function love.load()
         end
     end
 
-    if map.layers['BirdObj'] then
-
-        for i, obj in pairs(map.layers['BirdObj'].objects) do
-            local bird = {}
-
-            if obj.shape == "rectangle" then
-
-                bird.body = love.physics.newBody(world, obj.x + obj.width / 2, obj.y + obj.height / 2, "dynamic")
-                bird.shape = love.physics.newRectangleShape(obj.width,obj.height)
-                bird.fixture = love.physics.newFixture(bird.body, bird.shape, 1)
-                bird.fixture:setUserData(bird)
-                bird.body:setFixedRotation(true)
-                bird.index = i
-                bird.name = "bird"
-                bird.type = "enemy"
-                bird.distance = 0
-                bird.body:setGravityScale(0)
-                bird.body:setLinearDamping(3)
-                
-                bird.chasing = false
-                bird.killed = false
-                bird.direciton = 1
-                bird.active = false
-                bird.x = obj.x
-                bird.y = obj.y
-                bird.range = 2
-                bird.viewangle = 0
-
-                bird.uncovered = false
-
-                table.insert(birds, bird)
-            end
-        end
-    end
-
-    LoadEnemies(world, foxes, birds)
+    LoadEnemies(world, foxes)
+    LoadPlayerSounds()
+    LoadEnemySounds()
     
 
 end
@@ -273,10 +238,6 @@ end
 
 function BeginContact(fixtureA,fixtureB)
     BeginContactPlayer(fixtureA, fixtureB)
-end
-
-function EndContact(fixtureA,fixtureB)
-    EndContactPlayer(fixtureA, fixtureB)
 end
 
 
@@ -316,14 +277,9 @@ function love.draw()
 
         camera:attach() 
         love.graphics.push()
-        map:drawLayer(map.layers["background"])
         map:drawLayer(map.layers["Ground"])
-        
-        map:drawLayer(map.layers["florathree"])
-        map:drawLayer(map.layers["floratwo"])
+
         map:drawLayer(map.layers["flora"])
-        
-        map:drawLayer(map.layers["foxbush"])
         map:drawLayer(map.layers["car"])
         map:drawLayer(map.layers["platforms"])
         --DrawMap()

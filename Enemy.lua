@@ -13,11 +13,18 @@ local bird2hurttriggerleft,bird2hurttriggerright
 
 -- tiled
 local foxes
-local birds
 local DetectionZones = {}
 
+--enemy sounds and associated variables
 
-function LoadEnemies(world, foxsTable, birdTable)
+local foxSound
+local birdSound
+local birdSoundTimer = 0.1
+local stalactiteSound
+
+
+
+function LoadEnemies(world, foxsTable)
     Direction = 1
     bird = {}
     bird.body = love.physics.newBody(world, 1400,  50, "dynamic")
@@ -218,11 +225,18 @@ function LoadEnemies(world, foxsTable, birdTable)
 
 
     foxes = foxsTable
-    birds = birdTable
     FoxDetectionZone(world)
-    BirdDetectionZone(world)
 
 end
+
+function LoadEnemySounds()
+
+    foxSound = love.audio.newSource("/sounds/foxtrim.wav","static")
+    birdSound = love.audio.newSource("/sounds/crow.wav","static")
+    stalactiteSound = love.audio.newSource("/sounds/crack.wav","static")
+
+end
+
 
 function UpdateTriggerPosition()
     if fox.body:isDestroyed() == false then
@@ -250,6 +264,36 @@ function UpdateTriggerPosition()
     end
 end
 
+-- function FoxBehaviour(dt)
+--     if fox.body:isDestroyed() == false then
+--     --if foxnoticed == true then
+--         if CurrentFox.Readytimer > 0 then --timer function for idle animation. Future-proofing for after the prototyping delivery
+
+--         CurrentFox.Readytimer = CurrentFox.Readytimer-dt
+
+--             if CurrentFox.Readytimer < 0 then
+
+--                 if fox.attackTimer > 0 then
+--                     fox.attackTimer = fox.attackTimer - dt
+
+--                     local Xplayer, YPlayer = PlayerPosition()
+
+--                     if Xplayer >= Xfox then
+--                         fox.body:setLinearVelocity(500, -1800)
+--                         CurrentFox.Readytimer = 2.5
+--                         fox.attackTimer = 1
+--                     else
+--                         fox.body:setLinearVelocity(-500, -1800)
+--                         CurrentFox.Readytimer = 2.33
+--                         fox.attackTimer = 1
+--                     end
+
+--                 end
+--             end
+--         end
+--     end
+-- end
+
 function FoxBehaviourTiled(dt)
 
     for i = 1, #foxes do
@@ -268,16 +312,17 @@ function FoxBehaviourTiled(dt)
                     if CurrentFox.attackTimer > 0 then
                         CurrentFox.attackTimer = CurrentFox.attackTimer - dt
 
+                        love.audio.play(foxSound)
                         local Xplayer, YPlayer = PlayerPosition()
 
                         -- Changes direction
                         if Xplayer >= CurrentFox.body:getX() then
-                            CurrentFox.body:applyLinearImpulse(900, -3500)
+                            CurrentFox.body:applyLinearImpulse(700, -2800)
                             CurrentFox.Readytimer = 2.5
                             CurrentFox.attackTimer = 1
                             --print("right move")
                         else
-                            CurrentFox.body:applyLinearImpulse(-900, -3500)
+                            CurrentFox.body:applyLinearImpulse(-700, -2800)
                             CurrentFox.Readytimer = 2.33
                             CurrentFox.attackTimer = 1
                             --print("left move")
@@ -305,20 +350,6 @@ function FoxDetectionZone(world)
     end
 end
 
-function BirdDetectionZone(world)
-    for i = 1, #birds do
-        local CurrentBird = birds[i]
-    
-        local startingX = CurrentBird.body:getX()
-        local startingY = CurrentBird.body:getY()
-        local foxZoneWIdth = 1000
-        local foxZoneHeight = 500
-
-        CreateDetectionZone(startingX, startingY, foxZoneWIdth, foxZoneHeight, world, CurrentBird)
-
-    end
-end
-
 function CreateDetectionZone(x, y, w, h, world, CurrentEnemy)
 
     local DetectionZone = {}
@@ -331,7 +362,6 @@ function CreateDetectionZone(x, y, w, h, world, CurrentEnemy)
     DetectionZone.fixture:setSensor(true)
     DetectionZone.name = "detectionZone"
     DetectionZone.attachment = CurrentEnemy.fixture:getUserData()
-    DetectionZone.typeOfEnemy = DetectionZone.attachment.name
     -- --values used for rappresentation in the draw
     -- DetectionZone.x = x - w/2
     -- DetectionZone.y = y - h/2
@@ -349,15 +379,6 @@ end
 function FoxUncovering(enemy)
     enemy.uncovered = true
 end
-
-function BirdActivating(bird)
-    bird.active = true
-end
-
-function BirdDeactivating(bird)
-    bird.active = false
-end
-
 -- function love.keypressed(key)
 --     if key == "f" then
 --         for i = 1, #foxes do
@@ -375,25 +396,19 @@ function UpdateEnemies(dt, playerx, playery,ball, world)
 
     local playerposition = vector2.new(playerx,playery)
    
-    -- BirdCollision(ball, birdtrigger, bird)
-    -- BirdMovement(bird, playerposition)
-
-    -- BirdCollision(ball, bird2trigger, bird2)
-    -- BirdMovement(bird2, playerposition)
-
-   
-    -- BirdCollision(ball, bird2trigger, bird2)
-    -- BirdMovement(bird2, playerposition)
-   
-   
-    FoxBehaviourTiled(dt) 
-    for i = 1, #birds do
-
-        local CurrentBird = birds[i]
-        BirdMovementTiled(CurrentBird, playerposition)
+    if BirdCollision(ball, birdtrigger, bird) then
+        BirdMovement(bird, playerposition)
     end
 
-   --StalactiteCollision(ball, stalactitetrigger, stalactite)
+
+   
+    -- BirdCollision(ball, bird2trigger, bird2)
+    -- BirdMovement(bird2, playerposition)
+   
+   
+    FoxBehaviourTiled(dt)  
+   
+   StalactiteCollision(ball, stalactitetrigger, stalactite)
    FallingStalactite(stalactite, dt)
 
 end
@@ -412,7 +427,6 @@ function CanSee(pl, pllookdir, p2, viewangle)
     if (math.deg(angle) > viewangle) then
         return true
     end
-    return false
 end
 
 function DrawEnemy()
@@ -447,7 +461,6 @@ function DrawEnemy()
 
     --TIled
 
-    -- Foxes
     love.graphics.setColor(1, 0.5,0)
     for i = 1, #foxes do
 
@@ -457,68 +470,87 @@ function DrawEnemy()
         end
     end
 
-    --Detection zones
     love.graphics.setColor(1,0,0)
     for i = 1, #DetectionZones do
 
         local CurrentDetectionZone = DetectionZones[i]
-        if CurrentDetectionZone.attachment.uncovered == false then
-            love.graphics.rectangle("line", CurrentDetectionZone.x - CurrentDetectionZone.w/2 , CurrentDetectionZone.y - CurrentDetectionZone.h/2, CurrentDetectionZone.w, CurrentDetectionZone.h)
-        end
-    end
-
-    -- Birds
-    love.graphics.setColor(0.2, 0.2, 0.2)
-    for i = 1, #birds do
-
-        local CurrentBird = birds[i]
-        if CurrentBird.body:isDestroyed() == false then
-            love.graphics.polygon("fill", CurrentBird.body:getWorldPoints(CurrentBird.shape:getPoints()))
-        end
+        love.graphics.rectangle("line", CurrentDetectionZone.x - CurrentDetectionZone.w/2 , CurrentDetectionZone.y - CurrentDetectionZone.h/2, CurrentDetectionZone.w, CurrentDetectionZone.h)
     end
 
 end
 
+function CheckCollision(a, b)
+    return
+        a.x>= b.x and
+        a.x<= b.x + b.width and
+        a.y>= b.y and
+        a.y<= b.y + b.height
+end
 
-function BirdMovementTiled(birb, playerposition)
+
+function BirdCollision(player,birdTriggerZone, birb)
+    if birb.body:isDestroyed() == false then
+        if birb.name == "enemy1" then
+            if CheckCollision(player,birdTriggerZone) then
+                -- Activate the trigger
+                birdtrigger.triggered = true
+                --print("Trigger activated!")
+            
+                -- Activate the bird
+                birb.x = 1400  -- Set the initial x-coordinate of the bird
+                birb.y = 550  -- Set the initial y-coordinate of the bird
+                birb.active = true
+                --print("Enemy activated!")
+            
+            else
+                --birb.body:setPosition(birb.OriginalX, birb.OriginalY)
+                BirdMovement(birb, birb.Origin)
+                birb.x = 1200
+                birb.y = 550    
+                birb.active = true
+                birb.active = true         
+        
+            end
+    
+        end 
+    end
+    
+    return true
+end
+
+
+function BirdMovement(birb, playerposition)
     if birb.body:isDestroyed() == false then
         birb.direction = vector2.new(math.cos(birb.body:getAngle()), math.sin(birb.body:getAngle()))
-
-        birb.chasing = CanSee(vector2.new(birb.body:getPosition()), birb.direction, playerposition, birb.viewangle)
-
+    
         if birb.active then  
+            if(CanSee (vector2.new(birb.body:getPosition()), birb.direction, playerposition, birb.viewangle)) then
+            birb.chasing = true
+    
+            end
             if birb.chasing then
-                local playerdirection = vector2.normalize(vector2.sub(playerposition, vector2.new(birb.body:getPosition())))
-                local engineForce = vector2.mult(playerdirection,1800)
+                local playerdirection = vector2.normalize (vector2.sub(playerposition, vector2.new(birb.body:getPosition())))
+                local engineForce = vector2.mult (playerdirection,2500)
                 birb.body:applyForce(engineForce.x, engineForce.y)
-
+                local birdvelocity = vector2.new(birb.body:getLinearVelocity () )
+                -- bird.body: setAngle (math. atan2 (birdvelocity.y, birdvelocity.x) )
+    
                 if birb.x > 50 + birb.range then
                     birb.direction = -1
                 elseif birb.x < 50 - birb.range then
                     birb.direction = 1
                 end
             end
-        else
-            local vector2Home = vector2.new(birb.x, birb.y)
-            local homeDirection = vector2.normalize(vector2.sub(vector2Home, vector2.new(birb.body:getPosition())))
-                local engineForce = vector2.mult(homeDirection,1400)
-                birb.body:applyForce(engineForce.x, engineForce.y)
-
-                if birb.x > 50 + birb.range then
-                    birb.direction = -1
-                elseif birb.x < 50 - birb.range then
-                    birb.direction = 1
-                end
+    
         end
-
     end
 end
 
--- function StalactiteCollision(player, StalactiteTriggerZone, stalactite)
---     if stalactite.body:isDestroyed() == false then 
---         if  CheckCollision(player, StalactiteTriggerZone) then
+function StalactiteCollision(player, StalactiteTriggerZone, stalactite)
+    if stalactite.body:isDestroyed() == false then 
+        if  CheckCollision(player, StalactiteTriggerZone) then
 
---             stalactite.canFall = true
---         end
---     end
--- end
+            stalactite.canFall = true
+        end
+    end
+end

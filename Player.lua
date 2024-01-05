@@ -35,6 +35,14 @@ local rays
 local MaxCameraDisplacment = vector2.new(0, 0)
 local targetToFollowX, targetToFollowY
 
+--player sounds and related variables
+local ammoCollectSound
+local reloadSound
+local reloadSoundToggle = false
+local shootSound
+local killFoxSound
+local killBirdSound
+
 function Noknockback()
 
     if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
@@ -49,7 +57,7 @@ function Noknockback()
             knockbacktoggle = false
             knockbacknegx = -1200
             knockbackposx = 1200
-            knockbacky = -2800
+            knockbacky = -1200
             knockbacktoggletimer = 1
         end
 end
@@ -82,6 +90,16 @@ function LoadPlayer(world)
     return ball
 end
 
+function LoadPlayerSounds()
+
+    reloadSound = love.audio.newSource("/sounds/reloaddone.wav","static")
+    ammoCollectSound = love.audio.newSource("/sounds/ammopickup.wav", "static")
+    shootSound = love.audio.newSource("/sounds/explosion.wav", "static" )
+    killFoxSound = love.audio.newSource("/sounds/foxtrim.wav", "static")
+    killBirdSound = love.audio.newSource("/sounds/crow.wav", "static")
+
+end
+
 function LoadAmmoBox(AmmoBoxs)
 
     AmmoBoxes = AmmoBoxs
@@ -97,7 +115,7 @@ function LoadAmmoBox(AmmoBoxs)
     -- ammoboxtrigger.collected=false
     -- ammoboxtrigger.distance = 0
 
-    AmmoBoxImg = love.graphics.newImage("Immages/AmmoBoxImg.png")
+    AmmoBoxImg = love.graphics.newImage("Images/AmmoBoxImg.png")
 
 end
 
@@ -166,6 +184,11 @@ function UpdatePlayer(dt, camera, world, CurrentState)
         timer = timer-dt
     end
 
+    if reloadSoundToggle==true and timer <= 0.438 then
+        love.audio.play(reloadSound)
+        reloadSoundToggle = false
+    end
+
     DirecitonalVector = UsingCameraCoordinate()
 
     rotation = math.atan2(DirecitonalVector.y, DirecitonalVector.x)
@@ -176,8 +199,9 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     --Player movemnts Using CAMERA as a reference
     if love.mouse.isDown(1) and timer <= 0 and ammo > 0 then
         
-        -- Calculating the angle between a given number of rays and its amplitude    
-    
+        -- Calculating the angle between a given number of rays and its amplitude
+        love.audio.play(shootSound) 
+        reloadSoundToggle=true   
         local rayAngleIncrement = shootingAmplitude / (shootingRays - 1)
         local endIndex = math.floor((shootingRays - 1) / 2)
         local startIndex = -endIndex
@@ -211,7 +235,7 @@ function UpdatePlayer(dt, camera, world, CurrentState)
         
 
         if vector2.magnitude(DirecitonalVector) > 2 then
-
+            
             DirecitonalVector = vector2.normalize(DirecitonalVector)
             ball.body:setLinearVelocity(0,0)
             local velocity =  vector2.mult(DirecitonalVector, -3300)
@@ -240,7 +264,7 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     end
     
     if love.mouse.isDown(2) then
-        targetToFollowX, targetToFollowY = MoveCamera(MaxCameraDisplacment, camera)
+        targetToFollowX, targetToFollowY = MoveCamera(MaxCameraDisplacment, camera, rotation)
     end
 
     camera:follow(targetToFollowX, targetToFollowY, rotation)
@@ -343,7 +367,7 @@ function WorldRayCastCallback(fixture, x, y, xn, yn, fraction)
     
     if fixture:getUserData().type == "terrain" or fixture:getUserData().type == "enemy" then-- enmey x,y expressed in world coordinate
         fixture:getUserData().x = x
-        fixture:getUserData().y = y        
+        fixture:getUserData().y = y
 
         table.insert(RayHitList,hit)
     end
@@ -543,22 +567,13 @@ function BeginContactPlayer(fixtureA, fixtureB)
 
     if fixtureA:getUserData().name == "Ammo" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
         AmmoColleciton(fixtureA:getUserData())
+        love.audio.play(ammoCollectSound)
         -- add collection text, +10
     end
 
     if fixtureA:getUserData().name == "detectionZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-        local currentFixture = fixtureA:getUserData()
-
-        if currentFixture.typeOfEnemy == "fox" then
-            FoxUncovering(currentFixture.attachment)
-        end
-
-        if currentFixture.typeOfEnemy == "bird" then
-            BirdActivating(currentFixture.attachment)
-        end
-
+        FoxUncovering(fixtureA:getUserData().attachment)
     end
-
 
     if fixtureA:getUserData().name== "hurttriggerL" and fixtureB: getUserData().name == "Player" then
         ball.body:setLinearVelocity(knockbacknegx, knockbacky)
@@ -590,10 +605,10 @@ function BeginContactPlayer(fixtureA, fixtureB)
     end
 
     if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-        if fixtureB:getUserData().body:getY() <= fixtureA:getUserData().body:getY() - 32 then
-            timer = 0.3
-            print("Terrain contact")
-        end
+        
+        
+        print("Terrain contact")
+
     end
 
     -- fox
@@ -609,31 +624,21 @@ function BeginContactPlayer(fixtureA, fixtureB)
     end
 end
 
-function EndContactPlayer(fixtureA, fixtureB)
-    if fixtureA:getUserData().name == "detectionZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-        local currentFixture = fixtureA:getUserData()
-
-        if currentFixture.typeOfEnemy == "fox" then
-            FoxUncovering(currentFixture.attachment)
-        end
-
-        if currentFixture.typeOfEnemy == "bird" then
-            BirdDeactivating(currentFixture.attachment)
-        end
-
-    end
-end
-
 function UpdateWinCondition()
     return STATE_WON
 end
 
 
 function KillEnemy(enemy)
+    --enemy.killed = true
     enemy.body:destroy()
 
     if enemy.name == "fox" then
-        print("suca coglione")
+        love.audio.play(killFoxSound)
+    end
+
+    if enemy.name == "bird" then
+        love.audio.play(killBirdSound)
     end
 end
 
