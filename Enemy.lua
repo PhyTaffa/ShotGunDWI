@@ -346,8 +346,8 @@ function CreateDetectionZone(x, y, w, h, world, CurrentEnemy)
 
 end
 
-function FoxUncovering(enemy)
-    enemy.uncovered = true
+function FoxUncovering(fox)
+    fox.uncovered = true
 end
 
 function BirdActivating(bird)
