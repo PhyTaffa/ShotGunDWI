@@ -23,6 +23,13 @@ local birdSound
 local birdSoundTimer = 0.1
 local stalactiteSound
 
+--Fox Forces
+local inReachX = 1900
+local inReachY = -2000
+
+local outsideReachX = 900
+local outsideReachY = -3500
+
 
 function LoadEnemies(world, foxsTable, birdTable)
     Direction = 1
@@ -289,30 +296,34 @@ function FoxBehaviourTiled(dt)
                         local playerMag = vector2.magnitude(playerPos)
 
                         --making the fox jump to the player if in reach or with a precise trajectory
-                        if playerMag > 5*64 then
-                        -- Changes direction
+                        if playerMag > 10*64 then
+                        -- if player is outside of reach
+
+                            --fox pounces right
                             if Xplayer >= CurrentFox.body:getX() then
-                                CurrentFox.body:applyLinearImpulse(900, -3500)
+                                CurrentFox.body:applyLinearImpulse(outsideReachX, outsideReachY)
                                 CurrentFox.Readytimer = 2.5
                                 CurrentFox.attackTimer = 1
-                            else
-                                CurrentFox.body:applyLinearImpulse(-900, -3500)
+                            else --fox pounces left
+                                CurrentFox.body:applyLinearImpulse(-outsideReachX, -outsideReachY)
                                 CurrentFox.Readytimer = 2.33
                                 CurrentFox.attackTimer = 1
                             end
+
                         else -- if player is in reach
 
+                            -- fox puonces right
                             if Xplayer >= CurrentFox.body:getX() then
-                                CurrentFox.body:applyLinearImpulse(1900, -500)
+                                CurrentFox.body:applyLinearImpulse(inReachX, -inReachY)
                                 CurrentFox.Readytimer = 2.5
                                 CurrentFox.attackTimer = 1
-                            else
-                                CurrentFox.body:applyLinearImpulse(-1900, -500)
+                            else-- fox puonces left
+                                CurrentFox.body:applyLinearImpulse(-inReachX, -inReachY)
                                 CurrentFox.Readytimer = 2.33
                                 CurrentFox.attackTimer = 1
                             end
-                        end
 
+                        end
                     end
                 end
             end
