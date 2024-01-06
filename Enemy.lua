@@ -285,18 +285,32 @@ function FoxBehaviourTiled(dt)
 
                         love.audio.play(foxSound)
                         local Xplayer, YPlayer = PlayerPosition()
+                        local playerPos = vector2.new(Xplayer - CurrentFox.body:getX(), YPlayer - CurrentFox.body:getY())
+                        local playerMag = vector2.magnitude(playerPos)
 
+                        --making the fox jump to the player if in reach or with a precise trajectory
+                        if playerMag > 5*64 then
                         -- Changes direction
-                        if Xplayer >= CurrentFox.body:getX() then
-                            CurrentFox.body:applyLinearImpulse(900, -3500)
-                            CurrentFox.Readytimer = 2.5
-                            CurrentFox.attackTimer = 1
-                            --print("right move")
-                        else
-                            CurrentFox.body:applyLinearImpulse(-900, -3500)
-                            CurrentFox.Readytimer = 2.33
-                            CurrentFox.attackTimer = 1
-                            --print("left move")
+                            if Xplayer >= CurrentFox.body:getX() then
+                                CurrentFox.body:applyLinearImpulse(900, -3500)
+                                CurrentFox.Readytimer = 2.5
+                                CurrentFox.attackTimer = 1
+                            else
+                                CurrentFox.body:applyLinearImpulse(-900, -3500)
+                                CurrentFox.Readytimer = 2.33
+                                CurrentFox.attackTimer = 1
+                            end
+                        else -- if player is in reach
+
+                            if Xplayer >= CurrentFox.body:getX() then
+                                CurrentFox.body:applyLinearImpulse(1900, -500)
+                                CurrentFox.Readytimer = 2.5
+                                CurrentFox.attackTimer = 1
+                            else
+                                CurrentFox.body:applyLinearImpulse(-1900, -500)
+                                CurrentFox.Readytimer = 2.33
+                                CurrentFox.attackTimer = 1
+                            end
                         end
 
                     end
