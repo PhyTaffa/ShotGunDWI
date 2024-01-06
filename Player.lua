@@ -4,7 +4,7 @@ local ball
 local timer = 0
 -- local CameraDirection = vector2.new(0,0)
 local Stranded = false
-local ammo = 40
+local ammo = 10
 local DisplayShootingZone = false
 local collected = false
 local ammoboxtrigger
@@ -728,10 +728,13 @@ function DrawUI()
     
     love.graphics.setColor(1,1,1)
     -- set font
-    love.graphics.setFont(love.graphics.newFont(80))
+    love.graphics.setFont(love.graphics.newFont(75))
     love.graphics.draw(ammoCounterUI, sw - uiX * 2, sh - uiY * 2, 0, 2, 2)
-    love.graphics.print(ammo, sw - uiX- 20, sh - uiY- 40, 0, 1, 1)
-
+    if ammo >= 10 then 
+        love.graphics.print(ammo, sw - uiX- 20, sh - uiY- 40, 0, 1, 1)
+    else
+        love.graphics.print("0 " .. ammo, sw - uiX - 30, sh - uiY- 40, 0, 1, 1)
+    end
 end
 -- function love.mousepressed(x, y, button, istouch)
 --     print("mouse pressed at: " .. x .. ", " .. y)

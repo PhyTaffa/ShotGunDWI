@@ -103,7 +103,7 @@ function MainMenu()
     love.graphics.setColor(1,1,1)
     love.graphics.setFont(love.graphics.newFont(30))
 
-    love.graphics.draw(logo, sw/2- logo:getWidth()*3, sh/7, 0, 6, 6)
+    love.graphics.draw(logo, sw/2- logo:getWidth() * 3, sh/7, 0, 6, 6)
     love.graphics.print("Pebbles and amoguses", sw/2 - 350, sh/2,0,2,2)
 
     local Mx = love.mouse:getX()
@@ -122,9 +122,10 @@ function CeckMouseOverlapping(Mx, My)
         --check if mouse is inside boxes xor
         if (Mx >= xMM - w/2 and Mx <= xMM + w/2) and (My >= yMM[i] and My <= yMM[i] + h)  then 
 
-            --print("overlapping")
+            print("overlapping")
             --print(yMM[i], h)
-            -- funny feddback and state changments
+
+            --funny feddback and state changments
 
         end
     end
@@ -132,13 +133,16 @@ function CeckMouseOverlapping(Mx, My)
 end
 
 function DrawMainMenu()
-    love.graphics.setColor(0.3, 0.3, 0.3)
 
     for i = 1, #BoxOptions do
 
         local CurrentBox = BoxOptions[i]
+        love.graphics.setColor(0.3, 0.3, 0.3)
         love.graphics.polygon("fill", CurrentBox.body:getWorldPoints(CurrentBox.shape:getPoints()))
 
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.setFont(love.graphics.newFont(75))
+        love.graphics.print("play", CurrentBox.body:getWorldPoints(CurrentBox.shape:getPoints()))
     end
 end
 
