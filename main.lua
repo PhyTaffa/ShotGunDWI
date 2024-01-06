@@ -266,7 +266,8 @@ function love.load()
     end
 
     LoadEnemies(world, foxes, birds)
-    
+    LoadPlayerSounds()
+    LoadEnemySounds()
 
 end
 

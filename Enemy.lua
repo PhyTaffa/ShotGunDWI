@@ -16,6 +16,13 @@ local foxes
 local birds
 local DetectionZones = {}
 
+--enemy sounds and associated variables
+
+local foxSound
+local birdSound
+local birdSoundTimer = 0.1
+local stalactiteSound
+
 
 function LoadEnemies(world, foxsTable, birdTable)
     Direction = 1
@@ -224,6 +231,14 @@ function LoadEnemies(world, foxsTable, birdTable)
 
 end
 
+function LoadEnemySounds()
+
+    foxSound = love.audio.newSource("/sounds/foxtrim.wav","static")
+    birdSound = love.audio.newSource("/sounds/crow.wav","static")
+    stalactiteSound = love.audio.newSource("/sounds/crack.wav","static")
+
+end
+
 function UpdateTriggerPosition()
     if fox.body:isDestroyed() == false then
         Xfox, Yfox = fox.body:getPosition()
@@ -268,6 +283,7 @@ function FoxBehaviourTiled(dt)
                     if CurrentFox.attackTimer > 0 then
                         CurrentFox.attackTimer = CurrentFox.attackTimer - dt
 
+                        love.audio.play(foxSound)
                         local Xplayer, YPlayer = PlayerPosition()
 
                         -- Changes direction
