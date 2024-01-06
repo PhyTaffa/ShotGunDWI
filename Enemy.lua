@@ -16,8 +16,6 @@ local foxes
 local DetectionZones = {}
 
 --enemy sounds and associated variables
-<<<<<<< HEAD
-=======
 
 local foxSound
 local birdSound
@@ -31,7 +29,6 @@ local inReachY = -2000
 local outsideReachX = 900
 local outsideReachY = -3500
 
->>>>>>> main
 
 local foxSound
 local birdSound
@@ -253,10 +250,6 @@ function LoadEnemySounds()
 
 end
 
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 function UpdateTriggerPosition()
     if fox.body:isDestroyed() == false then
         Xfox, Yfox = fox.body:getPosition()
@@ -364,20 +357,6 @@ function FoxBehaviourTiled(dt)
                                 CurrentFox.attackTimer = 1
                             end
 
-<<<<<<< HEAD
-                        -- Changes direction
-                        if Xplayer >= CurrentFox.body:getX() then
-                            CurrentFox.body:applyLinearImpulse(700, -2800)
-                            CurrentFox.Readytimer = 2.5
-                            CurrentFox.attackTimer = 1
-                            --print("right move")
-                        else
-                            CurrentFox.body:applyLinearImpulse(-700, -2800)
-                            CurrentFox.Readytimer = 2.33
-                            CurrentFox.attackTimer = 1
-                            --print("left move")
-=======
->>>>>>> main
                         end
                     end
                 end

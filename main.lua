@@ -29,6 +29,7 @@ local GroundObjs = {}
 local AmmoBoxs = {}
 local AmmoBoxImg
 local foxes = {}
+local birds = {}
 
 --
 
@@ -228,11 +229,6 @@ function love.load()
         end
     end
 
-<<<<<<< HEAD
-    LoadEnemies(world, foxes)
-    LoadPlayerSounds()
-    LoadEnemySounds()
-    
 
     if map.layers['BirdObj'] then
 
@@ -272,7 +268,7 @@ function love.load()
     LoadEnemies(world, foxes, birds)
     LoadPlayerSounds()
     LoadEnemySounds()
->>>>>>> main
+
 
 end
 

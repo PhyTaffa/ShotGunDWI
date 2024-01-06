@@ -207,10 +207,6 @@ function UpdatePlayer(dt, camera, world, CurrentState)
         reloadSoundToggle = false
     end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     DirecitonalVector = UsingCameraCoordinate()
 
     rotation = math.atan2(DirecitonalVector.y, DirecitonalVector.x)
@@ -221,16 +217,10 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     --Player movemnts Using CAMERA as a reference
     if love.mouse.isDown(1) and timer <= 0 and ammo > 0 then
         
-<<<<<<< HEAD
-        -- Calculating the angle between a given number of rays and its amplitude
-        love.audio.play(shootSound) 
-        reloadSoundToggle=true   
-=======
         love.audio.play(shootSound) 
         reloadSoundToggle=true
         -- Calculating the angle between a given number of rays and its amplitude    
     
->>>>>>> main
         local rayAngleIncrement = shootingAmplitude / (shootingRays - 1)
         local endIndex = math.floor((shootingRays - 1) / 2)
         local startIndex = -endIndex
