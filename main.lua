@@ -228,10 +228,51 @@ function love.load()
         end
     end
 
+<<<<<<< HEAD
     LoadEnemies(world, foxes)
     LoadPlayerSounds()
     LoadEnemySounds()
     
+
+    if map.layers['BirdObj'] then
+
+        for i, obj in pairs(map.layers['BirdObj'].objects) do
+            local bird = {}
+
+            if obj.shape == "rectangle" then
+
+                bird.body = love.physics.newBody(world, obj.x + obj.width / 2, obj.y + obj.height / 2, "dynamic")
+                bird.shape = love.physics.newRectangleShape(obj.width,obj.height)
+                bird.fixture = love.physics.newFixture(bird.body, bird.shape, 1)
+                bird.fixture:setUserData(bird)
+                bird.body:setFixedRotation(true)
+                bird.index = i
+                bird.name = "bird"
+                bird.type = "enemy"
+                bird.distance = 0
+                bird.body:setGravityScale(0)
+                bird.body:setLinearDamping(3)
+                
+                bird.chasing = false
+                bird.killed = false
+                bird.direciton = 1
+                bird.active = false
+                bird.x = obj.x
+                bird.y = obj.y
+                bird.range = 2
+                bird.viewangle = 0
+
+                bird.uncovered = false
+
+                table.insert(birds, bird)
+            end
+        end
+    end
+
+    LoadEnemies(world, foxes, birds)
+    LoadPlayerSounds()
+    LoadEnemySounds()
+>>>>>>> main
 
 end
 

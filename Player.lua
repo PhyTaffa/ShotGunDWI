@@ -20,9 +20,17 @@ local GravityChangin= false
 local rotation = 0
 local anmmoConsumption = true
 
---Tiled stuff
+--Tiled imgs
 local AmmoBoxes
 local AmmoBoxImg
+
+--player sounds and related variables
+local ammoCollectSound
+local reloadSound
+local reloadSoundToggle = false
+local shootSound
+local killFoxSound
+local killBirdSound
 
 -- Variables used for the rayCast
 local RayHitList = {}
@@ -119,6 +127,16 @@ function LoadAmmoBox(AmmoBoxs)
 
 end
 
+function LoadPlayerSounds()
+
+    reloadSound = love.audio.newSource("/sounds/reloaddone.wav","static")
+    ammoCollectSound = love.audio.newSource("/sounds/ammopickup.wav", "static")
+    shootSound = love.audio.newSource("/sounds/explosion.wav", "static" )
+    killFoxSound = love.audio.newSource("/sounds/foxtrim.wav", "static")
+    killBirdSound = love.audio.newSource("/sounds/crow.wav", "static")
+
+end
+
 function UsingCameraCoordinate()
     -- Mouse - Plyaer usign camera coordinates
 
@@ -189,6 +207,10 @@ function UpdatePlayer(dt, camera, world, CurrentState)
         reloadSoundToggle = false
     end
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
     DirecitonalVector = UsingCameraCoordinate()
 
     rotation = math.atan2(DirecitonalVector.y, DirecitonalVector.x)
@@ -199,9 +221,16 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     --Player movemnts Using CAMERA as a reference
     if love.mouse.isDown(1) and timer <= 0 and ammo > 0 then
         
+<<<<<<< HEAD
         -- Calculating the angle between a given number of rays and its amplitude
         love.audio.play(shootSound) 
         reloadSoundToggle=true   
+=======
+        love.audio.play(shootSound) 
+        reloadSoundToggle=true
+        -- Calculating the angle between a given number of rays and its amplitude    
+    
+>>>>>>> main
         local rayAngleIncrement = shootingAmplitude / (shootingRays - 1)
         local endIndex = math.floor((shootingRays - 1) / 2)
         local startIndex = -endIndex
@@ -643,10 +672,13 @@ function KillEnemy(enemy)
 end
 
 
+
 function AmmoColleciton(fixtureA)
     fixtureA.body.destroy(fixtureA.body)
     ammo = ammo + 10
     fixtureA.collected = true
+
+    love.audio.play(ammoCollectSound)
 end
 
 
