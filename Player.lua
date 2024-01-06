@@ -16,13 +16,22 @@ local knockbacktoggle = false
 local knockbacktoggletimer = 0.1
 
 local cheats= false
-local GravityChangin= false
+local GravityChangin = true
 local rotation = 0
 local anmmoConsumption = true
 
---Tiled imgs
+--tiled table
 local AmmoBoxes
+
+--Tiled imgs
 local AmmoBoxImg
+local playerSprite
+local gunSprite
+local customCursor
+local customCursorReloading
+local ammoCounterUI
+
+
 
 --player sounds and related variables
 local ammoCollectSound
@@ -73,7 +82,8 @@ function LoadPlayer(world)
 
     ball= {}
     ball.body = love.physics.newBody(world, 1000, 7542, "dynamic")
-    ball.shape= love.physics.newCircleShape(32)
+    --ball.shape = love.physics.newRectangleShape(21, 32)
+    ball.shape= love.physics.newCircleShape(40)
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0) -- 1 os the density which if it's diverse than zero will impact the mass accordingly to the given shape nad it's size
     ball.body:setMass(1)
     ball.body:setFixedRotation(true)
@@ -83,7 +93,14 @@ function LoadPlayer(world)
     ball.onground = false
     ball.ammonition = ammo
     ball.x, ball.y = ball.body:getPosition()
+    playerSprite = love.graphics.newImage("/Immages/player/playerBase.png")
+    gunSprite = love.graphics.newImage("/Immages/player/jun.png")
 
+    customCursor = love.graphics.newImage("/Immages/cursor.png")
+    customCursorReloading = love.graphics.newImage("/Immages/reloadingCursor.png")
+    ammoCounterUI = love.graphics.newImage("/Immages/AmmoCounter.png")
+    
+    
 
     Ray = {}
 
@@ -200,7 +217,7 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     --Player movemnts Using CAMERA as a reference
     if love.mouse.isDown(1) and timer <= 0 and ammo > 0 then
         
-        love.audio.play(shootSound) 
+        love.audio.play(shootSound)
         reloadSoundToggle=true
         -- Calculating the angle between a given number of rays and its amplitude    
     
@@ -261,7 +278,7 @@ function UpdatePlayer(dt, camera, world, CurrentState)
             ammo=ammo - 1
         end
         
-        timer = 1.5  --1.5 reload timer
+        timer = 1.3  --1.5 reload timer
         DisplayShootingZone = true
     end
     
@@ -296,10 +313,11 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     end
 
     if cheats == false then
-        CheatMovements(world)
-
+        KeyPressedPlyaer(world)
     end
 
+
+    return 1
 end
 
 function MoveCamera(MaxCameraDisplacment, camera, rotation)
@@ -429,22 +447,6 @@ function SearchValue(mainTable)
 end
 
 
-function love.keypressed(key)
-    if key == "escape" then
-       love.event.quit()
-    end
-
-    if key == "space" then
-        GravityChangin = not GravityChangin
-    end
-
-    if key == "z" then
-        print(ball.body:getPosition())
-    end
-
-end
-
-
 -- function printTable(table, indent)
 --     indent = indent or 0
 
@@ -458,48 +460,56 @@ end
 --     end
 -- end
 
+function KeyPressedPlyaer(world)
+    if love.keyboard.isDown("space") then
+        GravityChangin = not GravityChangin
+    end
 
-function CheatMovements(world)
-
-
-    -- if love.mouse.isDown(2) then
-    --     GravityChangin = not GravityChangin
+    if love.keyboard.isDown("z") then
+        print(ball.body:getPosition())
+    end
+    
+    -- if GravityChangin == false then
+    --     world:setGravity( 0, 150 * love.physics.getMeter() )
+    -- else
+    --     world:setGravity( 0, 0 )
     -- end
 
     if GravityChangin == false then
-        world:setGravity( 0, 70 * love.physics.getMeter() )
+        ball.body:setGravityScale(0)
     else
-        world:setGravity( 0, 0 )
+        ball.body:setGravityScale(1)
     end
 
     if love.keyboard.isDown("right") then
 
-        local moveForce = vector2.new(1500, 0)
+        local moveForce = vector2.new(2000, 0)
         ball.body:applyForce(moveForce.x, moveForce.y)
     end
     if love.keyboard.isDown("left") then
 
-        local moveForce = vector2.new(-1500, 0)
+        local moveForce = vector2.new(-2000, 0)
         ball.body:applyForce(moveForce.x, moveForce.y)
     end
     if love.keyboard.isDown("up") then
-        world:setGravity( 0, 0 )
-        GravityChangin = true
+        GravityChangin = false
+        ball.body:setGravityScale(0)
+
         local jumpForce = vector2.new(0, -2000)
         ball.body:applyForce(jumpForce.x, jumpForce.y)
     end
 
     if love.keyboard.isDown("down") then
         --world:setGravity( 0, 70 * love.physics.getMeter() )
-        local jumpForce = vector2.new(0, 1000)
+        local jumpForce = vector2.new(0, 2000)
         ball.body:applyForce(jumpForce.x, jumpForce.y)
     end
 
     if love.keyboard.isDown("q") then
         DisplayShootingZone = true
     end
-
 end
+
 
 
 function RotateDisplayShootingZone(mode, x, y, width, height, angle)
@@ -513,15 +523,24 @@ function RotateDisplayShootingZone(mode, x, y, width, height, angle)
 end
 
 function DrawPlayer()
+    --love.graphics.rectangle("fill", ball.body:getX() - 21* 2, ball.body:getY() - 32* 2, 21* 4, 32* 4)
+    love.graphics.setColor(1,1,1)
+    love.graphics.draw(gunSprite, ball.body:getX(), ball.body:getY() - 10*2, rotation, 4, 4, 4, 9)
+    love.graphics.draw(playerSprite, ball.body:getX()- 21*2, ball.body:getY()-42*2, 0, 4, 4)
+
+
     love.graphics.setColor(243/256, 58/256, 106/256)
-    love.graphics.circle("fill", ball.body:getX(), ball.body:getY(), ball.shape:getRadius())
+    --love.graphics.circle("fill", ball.body:getX(), ball.body:getY(), ball.shape:getRadius())
+
 end
 
 function DrawTrajectory()
     local Wx, Wy = camera:getMousePosition()
     love.graphics.setColor(1,0.7,0.4)
     --love.graphics.line(ball.x, ball.y, Wx, Wy)
-    love.graphics.line(ball.x, ball.y, Wx, Wy)
+
+    --add cheats to see the line between player and mouse
+    --love.graphics.line(ball.x, ball.y, Wx, Wy)
 end
 
 function DrawShootingZone()
@@ -542,27 +561,22 @@ function DrawShootingZone()
 
 end
 
+function DrawCursor()
+    -- timer che inizia a 1.35 e termina a 0
+
+    if timer <= 0.1 then
+        love.graphics.draw(customCursor, love.mouse.getX(), love.mouse.getY(), 0, 4, 4, 10, 1)
+    else
+        love.graphics.draw(customCursorReloading, love.mouse.getX() + 16, love.mouse.getY() + 17, 0, 4, 4, 10, 1)
+    end
+end
+
 function UpdateGameStatus()
     if ammo <= 0 and Stranded == true then
         GameOver = true
     end
 
     return Stranded
-end
-
-
-function DrawUI()
-    local PlayerX, PlayerY = PlayerPosition()
-
-    -- get screen width/height
-    local sw = love.graphics:getWidth()
-    local sh = love.graphics:getHeight()
-    
-    love.graphics.setColor(1,1,1)
-    -- set font
-    love.graphics.setFont(love.graphics.newFont(25))
-    love.graphics.print("ammo: ".. ammo, sw/2 + sw/3, sh/2,0,1,1 )
-
 end
 
 function BeginContactPlayer(fixtureA, fixtureB)
@@ -617,8 +631,10 @@ function BeginContactPlayer(fixtureA, fixtureB)
 
     if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
         if fixtureB:getUserData().body:getY() <= fixtureA:getUserData().body:getY() - 32 then
-            timer = 0.3
-            print("Terrain contact")
+            if timer > 0.3 then 
+                timer = 0.3
+            end
+            --print("Terrain contact")
         end
     end
 
@@ -656,25 +672,27 @@ end
 
 
 function KillEnemy(enemy)
-    enemy.body:destroy()
-
     if enemy.name == "fox" then
         love.audio.play(killFoxSound)
+        love.graphics.print("cock", enemy.body:getX(), enemy.body:getY())
     end
 
     if enemy.name == "bird" then
         love.audio.play(killBirdSound)
     end
+
+    enemy.body:destroy()
 end
 
 
 
 function AmmoColleciton(fixtureA)
-    fixtureA.body.destroy(fixtureA.body)
-    ammo = ammo + 10
-    fixtureA.collected = true
-
     love.audio.play(ammoCollectSound)
+    ammo = ammo + 10
+
+    AmmoCollectionFeedBack(fixtureA)
+
+    fixtureA.body.destroy(fixtureA.body)
 end
 
 
@@ -683,13 +701,38 @@ function DrawAmmoBox()
 
         local CurrentAmmoBox = AmmoBoxes[i]
 
-        if CurrentAmmoBox.collected == false then
+        if CurrentAmmoBox.body:isDestroyed() == false then
             love.graphics.setColor(1,1,1)
             love.graphics.draw(AmmoBoxImg, CurrentAmmoBox.body:getX()-32, CurrentAmmoBox.body:getY()-32)
         end
     end
 end
 
+
+function AmmoCollectionFeedBack(ammoBox)
+
+    love.graphics.setFont(love.graphics.newFont(80))
+    love.graphics.print("+10", ammoBox.body:getX(), ammoBox.body:getY())
+    --print("+10")
+
+end
+
+function DrawUI()
+    local PlayerX, PlayerY = PlayerPosition()
+
+    -- get screen width/height
+    local sw = love.graphics:getWidth()
+    local sh = love.graphics:getHeight()
+    local uiX = ammoCounterUI:getWidth()
+    local uiY = ammoCounterUI:getHeight()
+    
+    love.graphics.setColor(1,1,1)
+    -- set font
+    love.graphics.setFont(love.graphics.newFont(80))
+    love.graphics.draw(ammoCounterUI, sw - uiX * 2, sh - uiY * 2, 0, 2, 2)
+    love.graphics.print(ammo, sw - uiX- 20, sh - uiY- 40, 0, 1, 1)
+
+end
 -- function love.mousepressed(x, y, button, istouch)
 --     print("mouse pressed at: " .. x .. ", " .. y)
 -- end

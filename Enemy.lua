@@ -24,11 +24,11 @@ local birdSoundTimer = 0.1
 local stalactiteSound
 
 --Fox Forces
-local inReachX = 1900
-local inReachY = -2000
+local inReachX = 4000
+local inReachY = 1600
 
-local outsideReachX = 900
-local outsideReachY = -3500
+local outsideReachX = 1300
+local outsideReachY = 5000
 
 
 function LoadEnemies(world, foxsTable, birdTable)

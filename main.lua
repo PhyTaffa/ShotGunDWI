@@ -21,6 +21,7 @@ STATE_CREDITS = 6
 local CurrentState = STATE_IN_GAME
 -- tiled implementation, should be moved away from the main
 local sti = require "sti"
+local map
 local Boundries = {}
 local grassPlatforms = {}
 local rockPlatforms = {}
@@ -38,7 +39,7 @@ love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
-    world = love.physics.newWorld(0, 150 * love.physics.getMeter(), true)
+    world = love.physics.newWorld(0, 70 * love.physics.getMeter(), true)
 
     world:setCallbacks(BeginContact, EndContact, nil, nil)
 
@@ -47,12 +48,18 @@ function love.load()
     camera:setFollowLead(10)
     camera:setFollowStyle('NO_DEADZONE')
     camera:setBounds(0, 0, 3840, 7680)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
+    
 
+    love.mouse.setVisible(false)
+    love.mouse.setGrabbed(true)
+  
+  
 
     ball = LoadPlayer(world)
 
 
     LoadMap(world)
+    LoadMainMenu(world)
     --LoadAmmoBox(world)
 
     -- tiled stuff to be moved, possibly idk if necessary to be kept on main
@@ -280,16 +287,61 @@ function EndContact(fixtureA,fixtureB)
     EndContactPlayer(fixtureA, fixtureB)
 end
 
+function love.keypressed(key)
+    if key == "escape" then
+       love.event.quit()
+    end
+
+    if key == "1" then
+        CurrentState = STATE_IN_GAME
+        love.mouse.setVisible(false)
+        print("current State: ", CurrentState)
+     end
+
+     if key == "2" then
+        CurrentState = STATE_MAIN_MENU
+        love.mouse.setVisible(true)
+        print("current State: ", CurrentState)
+
+     end
+
+     if key == "3" then
+        CurrentState = STATE_WON
+        print("current State: ", CurrentState)
+
+     end
+
+     if key == "4" then
+        CurrentState = STATE_STRANDED
+        print("current State: ", CurrentState)
+
+     end
+ 
+     if key == "5" then
+        CurrentState = STATE_IN_GAME_MENU
+        print("current State: ", CurrentState)
+
+
+     end
+
+     if key == "6" then
+        CurrentState = STATE_CREDITS
+        print("current State: ", CurrentState)
+     end
+ 
+
+end
+
 
 function love.update(dt)
 
-    --if CurrentState == STATE_IN_GAME then
+    -- if CurrentState ~= STATE_IN_GAME_MENU or CurrentState ~= STATE_CREDITS or CurrentState ~= STATE_WON or CurrentState ~= STATE_STRANDED or CurrentState ~= STATE_MAIN_MENU then
+    if CurrentState == STATE_IN_GAME then
         camera:update(dt)
         
-        UpdatePlayer(dt, camera, world, CurrentState)
+        CurrentState = UpdatePlayer(dt, camera, world, CurrentState)
         UpdateTriggerPosition()
         -- CurrentState = UpdateGameStatus()
-        CurrentState = UpdateWinCondition()
 
         -- if love.keyboard.isDown("e") then
         --     Difference = vector2.new(PlayerPosition()-EnemyPosition())
@@ -305,18 +357,22 @@ function love.update(dt)
         Noknockback()
 
         map:update(dt)
-    --end
-    world:update(dt)
+
+        world:update(dt)
+    end
 end
 
 function love.draw()
 
-    
-    --love.graphics.translate(100,100)
-    -- if CurrentState == STATE_IN_GAME then
+    if CurrentState == STATE_IN_GAME then
+
+        --map:drawLayer(map.layers["background"])
+        
 
         camera:attach() 
-        love.graphics.push()
+
+        love.graphics.setColor(1,1,1)
+        
         map:drawLayer(map.layers["background"])
         map:drawLayer(map.layers["Ground"])
         
@@ -334,24 +390,32 @@ function love.draw()
         DrawPlayer()
         DrawTrajectory()
         DrawShootingZone()
-        
 
-        love.graphics.pop()
         camera:detach()    
         
         DrawUI()
-        
-    -- end
 
-    -- if CurrentState == STATE_STRANDED then
-    --     GamingOver()
-    --     love.graphics.pop()
-    --     camera:detach()
-    -- end
-    -- if CurrentState == STATE_WON then --winning
-    --     Winning()
-    --     love.graphics.pop()
-    --     camera:detach()
-    -- end
+
+        DrawCursor()
+        
+    end
+
+    if CurrentState == STATE_STRANDED then
+        GamingOver()
+        -- love.graphics.pop()
+        -- camera:detach()
+    end
+    if CurrentState == STATE_WON then --winning
+        Winning()
+        --love.graphics.rectangle("fill", 100,100, 100,100)
+        -- love.graphics.pop()
+        -- camera:detach()
+    end
+    if CurrentState == STATE_MAIN_MENU then --winning
+        MainMenu()
+        --love.graphics.rectangle("fill", 100,100, 100,100)
+        -- love.graphics.pop()
+        -- camera:detach()
+    end
     
 end
