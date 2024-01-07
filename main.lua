@@ -3,6 +3,7 @@ camera = require "Camera"
 require "Player"
 require "Terrain"
 require "Enemy"
+require "GameState"
 
 
 local world
@@ -12,13 +13,14 @@ local ball
 
 -- Game States
 STATE_IN_GAME = 1
-STATE_MAIN_MENU = 2
-STATE_WON = 3
-STATE_STRANDED = 4
-STATE_IN_GAME_MENU = 5
-STATE_CREDITS = 6
+STATE_OPTIONS = 2
+STATE_MAIN_MENU = 3
+STATE_WON = 4
+STATE_STRANDED = 5
+STATE_IN_GAME_MENU = 6
+STATE_CREDITS = 7
 
-local CurrentState = STATE_IN_GAME
+local CurrentState = STATE_MAIN_MENU
 -- tiled implementation, should be moved away from the main
 local sti = require "sti"
 local map
@@ -31,6 +33,8 @@ local AmmoBoxs = {}
 local AmmoBoxImg
 local foxes = {}
 local birds = {}
+
+local WinZone
 
 --
 
@@ -50,8 +54,9 @@ function love.load()
     camera:setBounds(0, 0, 3840, 7680)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
     
 
-    love.mouse.setVisible(false)
+    love.mouse.setVisible(true)
     love.mouse.setGrabbed(true)
+    love.keyboard.setKeyRepeat(false)
   
   
 
@@ -179,6 +184,28 @@ function love.load()
         end
     end
 
+    --Winning Zone
+    if map.layers['WinZone'] then
+
+        for i, obj in pairs(map.layers['WinZone'].objects) do
+            WinZone = {}
+
+            if obj.shape == "rectangle" then
+
+                WinZone.body = love.physics.newBody(world, obj.x + obj.width / 2, obj.y + obj.height / 2, "static")
+                WinZone.shape = love.physics.newRectangleShape(obj.width,obj.height)
+                WinZone.fixture = love.physics.newFixture(WinZone.body, WinZone.shape, 1)
+                WinZone.fixture:setUserData(WinZone)
+                WinZone.fixture:setSensor(true)
+                WinZone.index = i
+                WinZone.name = "WinZone"
+
+            end
+
+        end
+    end
+
+    --Ammonitions
 
     --AmmoBoxImg = love.graphics.newImage("Immages/AmmoBoxImg.png")
 
@@ -287,79 +314,31 @@ function EndContact(fixtureA,fixtureB)
     EndContactPlayer(fixtureA, fixtureB)
 end
 
-function love.keypressed(key)
-    if key == "escape" then
-       love.event.quit()
-    end
-
-    if key == "1" then
-        CurrentState = STATE_IN_GAME
-        love.mouse.setVisible(false)
-        print("current State: ", CurrentState)
-     end
-
-     if key == "2" then
-        CurrentState = STATE_MAIN_MENU
-        love.mouse.setVisible(true)
-        print("current State: ", CurrentState)
-
-     end
-
-     if key == "3" then
-        CurrentState = STATE_WON
-        print("current State: ", CurrentState)
-
-     end
-
-     if key == "4" then
-        CurrentState = STATE_STRANDED
-        print("current State: ", CurrentState)
-
-     end
- 
-     if key == "5" then
-        CurrentState = STATE_IN_GAME_MENU
-        print("current State: ", CurrentState)
-
-
-     end
-
-     if key == "6" then
-        CurrentState = STATE_CREDITS
-        print("current State: ", CurrentState)
-     end
- 
-
-end
-
 
 function love.update(dt)
 
-    -- if CurrentState ~= STATE_IN_GAME_MENU or CurrentState ~= STATE_CREDITS or CurrentState ~= STATE_WON or CurrentState ~= STATE_STRANDED or CurrentState ~= STATE_MAIN_MENU then
+    CurrentState = ChangeGameState1()
+
     if CurrentState == STATE_IN_GAME then
         camera:update(dt)
         
-        CurrentState = UpdatePlayer(dt, camera, world, CurrentState)
+        UpdatePlayer(dt, camera, world)
         UpdateTriggerPosition()
-        -- CurrentState = UpdateGameStatus()
 
-        -- if love.keyboard.isDown("e") then
-        --     Difference = vector2.new(PlayerPosition()-EnemyPosition())
-        --     print(Difference.x," ", Difference.y,"\n")
-        -- end
         local playerx, playery = PlayerPosition()
         UpdateEnemies(dt, playerx, playery,ball, world)
-
-        --cheats
-        -- FoxBehaviour(dt)
-        Infiniteammo(dt)
-        Updatetoggletimer(dt)
-        Noknockback()
 
         map:update(dt)
 
         world:update(dt)
     end
+
+    if CurrentState == STATE_QUIT then --winning
+        love.event.quit()
+    end
+
+
+
 end
 
 function love.draw()
@@ -401,21 +380,74 @@ function love.draw()
     end
 
     if CurrentState == STATE_STRANDED then
+        camera:attach() 
+
+        love.graphics.setColor(1,1,1)
+        
+        map:drawLayer(map.layers["background"])
+        map:drawLayer(map.layers["Ground"])
+        
+        map:drawLayer(map.layers["florathree"])
+        map:drawLayer(map.layers["floratwo"])
+        map:drawLayer(map.layers["flora"])
+        
+        map:drawLayer(map.layers["foxbush"])
+        map:drawLayer(map.layers["car"])
+        map:drawLayer(map.layers["platforms"])
+
+        
+        DrawEnemy()
+        DrawAmmoBox()
+        DrawPlayer()
+        DrawTrajectory()
+        DrawShootingZone()
+
+        camera:detach()    
+        
+        DrawUI()
+        --DrawCursor()
+
+
         GamingOver()
-        -- love.graphics.pop()
-        -- camera:detach()
+
     end
+
     if CurrentState == STATE_WON then --winning
         Winning()
-        --love.graphics.rectangle("fill", 100,100, 100,100)
-        -- love.graphics.pop()
-        -- camera:detach()
+        --DrawCursor()
     end
+
     if CurrentState == STATE_MAIN_MENU then --winning
         MainMenu()
-        --love.graphics.rectangle("fill", 100,100, 100,100)
-        -- love.graphics.pop()
-        -- camera:detach()
+
+    end
+
+    if CurrentState == STATE_IN_GAME_MENU then --In game menus
+        love.graphics.setColor(1, 1, 1, 0.7) --makes evrything more opaqe so that the focus is drawn on the menu
+        camera:attach() 
+        
+        map:drawLayer(map.layers["background"])
+        map:drawLayer(map.layers["Ground"])
+        
+        map:drawLayer(map.layers["florathree"])
+        map:drawLayer(map.layers["floratwo"])
+        map:drawLayer(map.layers["flora"])
+        
+        map:drawLayer(map.layers["foxbush"])
+        map:drawLayer(map.layers["car"])
+        map:drawLayer(map.layers["platforms"])
+
+        
+        DrawEnemy()
+        DrawAmmoBox()
+        DrawPlayer()
+        DrawTrajectory()
+        DrawShootingZone()
+
+        camera:detach()    
+        
+        DrawUI()
+        --DrawCursor()
     end
     
 end

@@ -7,7 +7,7 @@ local stalactite,  stalactitetrigger
 local fox
 local birdtrigger,bird2trigger
 local foxnotice
-local playerTriggeredStalactite = false
+
 local bird2hurttriggerleft,bird2hurttriggerright
 
 

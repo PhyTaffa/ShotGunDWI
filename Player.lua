@@ -1,19 +1,17 @@
 require "vector2"
+require "GameState"
 
 local ball
-local timer = 0
--- local CameraDirection = vector2.new(0,0)
+local ShootingTimer = 0
 local Stranded = false
-local ammo = 10
+local CanThePlayerWin = false
+local ammo = 35
 local DisplayShootingZone = false
-local collected = false
-local ammoboxtrigger
-local win = false
+
+--Enemy pusheback force
 local knockbacky = -1200
-local knockbackposx = 1200
 local knockbacknegx = -1200
-local knockbacktoggle = false
-local knockbacktoggletimer = 0.1
+
 
 local cheats= false
 local GravityChangin = true
@@ -43,40 +41,39 @@ local killBirdSound
 
 -- Variables used for the rayCast
 local RayHitList = {}
-local shootingRange = 400 --400
+local shootingRange = 500 --400
 local shootingAmplitude = 45 --45
 local shootingRays = 11 --11
 local rays
 
 --Camera dragging
-local MaxCameraDisplacment = vector2.new(0, 0)
 local targetToFollowX, targetToFollowY
 
-function Noknockback()
+-- function Noknockback()
 
-    if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
+--     if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
 
-        knockbacktoggle = true
-        knockbacknegx = 0
-        knockbackposx = 0
-        knockbacky = 0
-        knockbacktoggletimer = 1
-    elseif love.keyboard.isDown("s") and knockbacktoggle==true and knockbacktoggletimer <=0 then
+--         knockbacktoggle = true
+--         knockbacknegx = 0
+--         knockbackposx = 0
+--         knockbacky = 0
+--         knockbacktoggletimer = 1
+--     elseif love.keyboard.isDown("s") and knockbacktoggle==true and knockbacktoggletimer <=0 then
 
-            knockbacktoggle = false
-            knockbacknegx = -1200
-            knockbackposx = 1200
-            knockbacky = -2800
-            knockbacktoggletimer = 1
-        end
-end
+--             knockbacktoggle = false
+--             knockbacknegx = -1200
+--             knockbackposx = 1200
+--             knockbacky = -2800
+--             knockbacktoggletimer = 1
+--         end
+-- end
 
-function Updatetoggletimer(dt)
+-- function Updatetoggletimer(dt)
 
-    if knockbacktoggletimer > 0 then
-        knockbacktoggletimer = knockbacktoggletimer -dt
-    end
-end
+--     if knockbacktoggletimer > 0 then
+--         knockbacktoggletimer = knockbacktoggletimer -dt
+--     end
+-- end
 
 function LoadPlayer(world)
 
@@ -94,7 +91,7 @@ function LoadPlayer(world)
     ball.ammonition = ammo
     ball.x, ball.y = ball.body:getPosition()
     playerSprite = love.graphics.newImage("/Immages/player/playerBase.png")
-    gunSprite = love.graphics.newImage("/Immages/player/jun.png")
+    gunSprite = love.graphics.newImage("/Immages/player/gun.png")
 
     customCursor = love.graphics.newImage("/Immages/cursor.png")
     customCursorReloading = love.graphics.newImage("/Immages/reloadingCursor.png")
@@ -110,17 +107,6 @@ end
 function LoadAmmoBox(AmmoBoxs)
 
     AmmoBoxes = AmmoBoxs
-
-    -- ammoboxtrigger = {}
-    -- ammoboxtrigger.body = love.physics.newBody(world,450,525,"static")
-    -- ammoboxtrigger.shape = love.physics.newRectangleShape(64, 64)
-    -- ammoboxtrigger.fixture = love.physics.newFixture(ammoboxtrigger.body,ammoboxtrigger.shape,2)
-    -- ammoboxtrigger.fixture:setSensor (true)
-    -- ammoboxtrigger.fixture:setUserData(ammoboxtrigger)
-    -- ammoboxtrigger.name = "Ammo"
-    -- ammoboxtrigger.type = "ammonistions"
-    -- ammoboxtrigger.collected=false
-    -- ammoboxtrigger.distance = 0
 
     AmmoBoxImg = love.graphics.newImage("Immages/AmmoBoxImg.png")
 
@@ -153,12 +139,6 @@ function PlayerPosition()
     return ball.x, ball.y
 end
 
-function Infiniteammo(dt)
-
-    if love.keyboard.isDown("a") then
-        anmmoConsumption = false
-    end
-end
 
 function displayTable(table)
     for key, value in pairs(table) do
@@ -188,7 +168,7 @@ end
 
 -- end
 
-function UpdatePlayer(dt, camera, world, CurrentState)
+function UpdatePlayer(dt, camera, world)
     -- Binds the camera to the player position
     targetToFollowX, targetToFollowY = ball.body:getPosition()
     
@@ -197,11 +177,11 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     PlayerPosition()
 
     --
-    if timer > 0 then --timer function
-        timer = timer-dt
+    if ShootingTimer > 0 then --ShootingTimer function
+        ShootingTimer = ShootingTimer-dt
     end
 
-    if reloadSoundToggle==true and timer <= 0.438 then
+    if reloadSoundToggle==true and ShootingTimer <= 0.438 then
         love.audio.play(reloadSound)
         reloadSoundToggle = false
     end
@@ -210,34 +190,36 @@ function UpdatePlayer(dt, camera, world, CurrentState)
     DirecitonalVector = UsingCameraCoordinate()
 
     rotation = math.atan2(DirecitonalVector.y, DirecitonalVector.x)
-    local shootingRangeVector = vector2.new(shootingRange, 0)
-    MaxCameraDisplacment = vector2.rotation(shootingRangeVector, math.rad(rotation))
-    --MaxCameraDisplacment = vector2.add(MaxCameraDisplacment, vector2.new(ball.body:getPosition()))
+    local CameraDisplacment = vector2.new(0, 0)
+
+
+    -- Calculating the angle between a given number of rays and its amplitude    
+    -- Resets the Ray hit lists
+
+    local rayAngleIncrement = shootingAmplitude / (shootingRays - 1)
+    local endIndex = math.floor((shootingRays - 1) / 2)
+    local startIndex = -endIndex
+
+    rays = {}
+    for i = startIndex, endIndex, 1 do
+        local ray = vector2.new(shootingRange, 0)
+        ray = vector2.rotation(ray, math.rad(i * rayAngleIncrement) + rotation)
+        local ballPositionX, ballPositionY = ball.body:getPosition()
+        ray = vector2.add(ray, vector2.new(ballPositionX, ballPositionY))
+        table.insert(rays, ray)
+        --displayTable(ray)
+        if i == 0 then
+            CameraDisplacment = ray
+        end
+        --print(i * rayAngleIncrement + math.deg(rotation), " ", ray.x, " ", ray.y)
+    end
+
 
     --Player movemnts Using CAMERA as a reference
-    if love.mouse.isDown(1) and timer <= 0 and ammo > 0 then
+    if love.mouse.isDown(1) and ShootingTimer <= 0 and ammo > 0 then
         
         love.audio.play(shootSound)
         reloadSoundToggle=true
-        -- Calculating the angle between a given number of rays and its amplitude    
-    
-        local rayAngleIncrement = shootingAmplitude / (shootingRays - 1)
-        local endIndex = math.floor((shootingRays - 1) / 2)
-        local startIndex = -endIndex
-    
-        rays = {}
-        for i = startIndex, endIndex, 1 do
-            local ray = vector2.new(shootingRange, 0)
-            ray = vector2.rotation(ray, math.rad(i * rayAngleIncrement) + rotation)
-            local ballPositionX, ballPositionY = ball.body:getPosition()
-            ray = vector2.add(ray, vector2.new(ballPositionX, ballPositionY))
-            table.insert(rays, ray)
-            --displayTable(ray)
-            --print(i * rayAngleIncrement + math.deg(rotation), " ", ray.x, " ", ray.y)
-        end
-
-
-        -- Resets the Ray hit lists
 
         -- Cycles through all the correctly rotated table of rays
         for i = 1, #rays, 1 do
@@ -260,13 +242,13 @@ function UpdatePlayer(dt, camera, world, CurrentState)
             local velocity =  vector2.mult(DirecitonalVector, -3300)
 
             local ball_x, ball_y = camera:toCameraCoords(ball.body:getPosition())
-            print(velocity.y)
+            --print(velocity.y)
 
             if love.mouse.getY() <= ball_y then
                 ball.body:applyLinearImpulse(velocity.x, velocity.y)
             else
                 velocity.y = velocity.y - 200
-                print(velocity.y)
+                --print(velocity.y)
                 ball.body:applyLinearImpulse(velocity.x, velocity.y )
             end
             
@@ -278,15 +260,15 @@ function UpdatePlayer(dt, camera, world, CurrentState)
             ammo=ammo - 1
         end
         
-        timer = 1.3  --1.5 reload timer
+        ShootingTimer = 1.3  --1.5 reload ShootingTimer
         DisplayShootingZone = true
     end
     
     if love.mouse.isDown(2) then
-        targetToFollowX, targetToFollowY = MoveCamera(MaxCameraDisplacment, camera)
+        targetToFollowX, targetToFollowY = MoveCamera(CameraDisplacment.x, CameraDisplacment.y, rotation)
     end
 
-    camera:follow(targetToFollowX, targetToFollowY, rotation)
+    camera:follow(targetToFollowX, targetToFollowY)
 
 
     local contacts =  ball.body:getContacts()
@@ -308,75 +290,53 @@ function UpdatePlayer(dt, camera, world, CurrentState)
 
 
     if ammo == 0 and ball.body:getLinearVelocity() == 0 then
-        Stranded = true
-        CurrentState = STATE_STRANDED
+
+        -- there should be a ShootingTimer and a possible fade in for the Death screen
+
+        ChangeGameState(STATE_STRANDED)
     end
 
     if cheats == false then
         KeyPressedPlyaer(world)
     end
 
-
-    return 1
 end
 
-function MoveCamera(MaxCameraDisplacment, camera, rotation)
+function MoveCamera(CameraDisplacmentX, CameraDisplacmentY, rotation)
     --Will check for the camera to not move outside the said range, the one of the shootingRange
     --local ActualCameraDisplacment = vector2.new(MaxCameraDisplacment)
 
+
     --mouse position
     local Wx, Wy = camera:getMousePosition()
-    print(Wx, " ", Wy)
     local PlayerPos = vector2.new(ball.body:getPosition())
     -- ball - mouse
-    -- local playerToMouseX = Wx - PlayerPos.x 
-    -- local playerToMouseY = Wy - PlayerPos.y
-    -- local playerToMouse = vector2.new(playerToMouseX, playerToMouseY)
-    -- local yes = vector2.add(playerToMouse, PlayerPos)
-    local yes1 = vector2.new(Wx, Wy)
+    local playerToMouseX = Wx - PlayerPos.x 
+    local playerToMouseY = Wy - PlayerPos.y
+    local playerToMouse = vector2.new(playerToMouseX, playerToMouseY)
+    -- ^ this part is similar to getting the player position
+    -- |
 
-    local correctMAxCameraDisplacent = vector2.new(0, 0)
-    correctMAxCameraDisplacent = vector2.add(MaxCameraDisplacment, PlayerPos)
-    -- correctMAxCameraDisplacent = vector2.rotation(correctMAxCameraDisplacent, rotation)
+    -- associating the camera min position as a vector
+    local Camera = vector2.new(CameraDisplacmentX, CameraDisplacmentY)
 
------------------ vettore associato alla posizione del mouse, controllo se la magnitudo supera la posizione detta se si, allora con un vettore preciiso sommato alla posizione del player
-    local camMove = vector2.new(shootingRange, 0)
-    camMove = vector2.rotation(camMove, math.rad(rotation))
-    local ballPositionX, ballPositionY = ball.body:getPosition()
-    camMove = vector2.add(camMove, vector2.new(ballPositionX, ballPositionY))
-    local m = vector2.magnitude(camMove)
+    -- finding the magnitude for checking purposes
+    local MaxDisplacmentMagnitude = vector2.magnitude(Camera)
+    local playerToMouseMagnitude =  vector2.magnitude(playerToMouse)
 
-    --print("playerToMouse ", playerToMouse.x, " ", playerToMouse.y)
+    -- natural followinf position, the coordinates of the mosue
+    local targetX = playerToMouse.x
+    local targetY = playerToMouse.y
 
-    local MouseLength = vector2.magnitude(yes1)
-
-    local finalValueX, finalValueY
-    -- local MagnitudeOfTheDisplacment 
-    -- local PushingLength = playerToMouse
-
-    if vector2.magnitude(yes1) > shootingRange then
-
-        finalValueX = camMove.x
-        finalValueY = camMove.y
-
-        --yes = correctMAxCameraDisplacent
+    -- if the mouse is inside the circle, it gets moved and makes the camera works(as intended btw[completely not luck])
+    if playerToMouseMagnitude < MaxDisplacmentMagnitude then
+        -- changes teh values accordingly
+        targetX = Camera.x
+        targetY = Camera.y
     end
 
-    -- targetToFollowX = PushingLength.x
-    -- targetToFollowY = PushingLength.y
-
-    targetToFollowX = finalValueX.x
-    targetToFollowY = finalValueY.y
-
-    --print("Target", targetToFollowX, targetToFollowY)
-
-    -- targetToFollowX = Wx
-    -- targetToFollowY = Wy
-
-    
-    --camera:follow(targetToFollowX, targetToFollowY)
-
-    return targetToFollowX, targetToFollowY
+    -- returns them to be used for the camera:follow
+    return targetX, targetY
 end
 
 
@@ -508,6 +468,30 @@ function KeyPressedPlyaer(world)
     if love.keyboard.isDown("q") then
         DisplayShootingZone = true
     end
+
+    if love.keyboard.isDown("a") then
+        anmmoConsumption = false
+    end
+    -- if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
+
+    --     knockbacktoggle = true
+    --     knockbacknegx = 0
+    --     knockbackposx = 0
+    --     knockbacky = 0
+    --     knockbacktoggletimer = 1
+    -- elseif love.keyboard.isDown("s") and knockbacktoggle==true and knockbacktoggletimer <=0 then
+
+    --         knockbacktoggle = false
+    --         knockbacknegx = -1200
+    --         knockbackposx = 1200
+    --         knockbacky = -2800
+    --         knockbacktoggletimer = 1
+    -- end
+
+    if love.keyboard.isDown("e") and ball.body:getLinearVelocity() == 0 and CanThePlayerWin == true then
+        ChangeGameState(STATE_WON)
+    end
+
 end
 
 
@@ -525,8 +509,10 @@ end
 function DrawPlayer()
     --love.graphics.rectangle("fill", ball.body:getX() - 21* 2, ball.body:getY() - 32* 2, 21* 4, 32* 4)
     love.graphics.setColor(1,1,1)
-    love.graphics.draw(gunSprite, ball.body:getX(), ball.body:getY() - 10*2, rotation, 4, 4, 4, 9)
-    love.graphics.draw(playerSprite, ball.body:getX()- 21*2, ball.body:getY()-42*2, 0, 4, 4)
+    -- Gun being drawed before the player since it's supposed to rotate behind him
+    love.graphics.draw(gunSprite, ball.body:getX(), ball.body:getY() + 23, rotation, 1, 1, 0, 47)
+    -- Player drawing
+    love.graphics.draw(playerSprite, ball.body:getX()- 21*2, ball.body:getY()-42*2, 0)
 
 
     love.graphics.setColor(243/256, 58/256, 106/256)
@@ -562,9 +548,9 @@ function DrawShootingZone()
 end
 
 function DrawCursor()
-    -- timer che inizia a 1.35 e termina a 0
-
-    if timer <= 0.1 then
+    -- ShootingTimer che inizia a 1.35 e termina a 0
+    love.mouse.setVisible(false)
+    if ShootingTimer <= 0.1 then
         love.graphics.draw(customCursor, love.mouse.getX(), love.mouse.getY(), 0, 4, 4, 10, 1)
     else
         love.graphics.draw(customCursorReloading, love.mouse.getX() + 16, love.mouse.getY() + 17, 0, 4, 4, 10, 1)
@@ -599,15 +585,24 @@ function BeginContactPlayer(fixtureA, fixtureB)
 
     end
 
+    if fixtureA:getUserData().name == "WinZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
+        -- the way that the beign contact is strucutred, it wont allow player to press a button or be with zero velocity in order to win, Prob necessary another way to check
+        -- if love.keyboard.isDown("w") then
+        -- cahnges a flag so that in the pressing key it is activated
+        CanThePlayerWin = true
+        -- end
 
-    if fixtureA:getUserData().name== "hurttriggerL" and fixtureB: getUserData().name == "Player" then
-        ball.body:setLinearVelocity(knockbacknegx, knockbacky)
     end
 
-    if fixtureA:getUserData().name== "hurttriggerR" and fixtureB: getUserData().name == "Player" then
-        ball.body:setLinearVelocity(knockbackposx, knockbacky)
 
-    end
+    -- if fixtureA:getUserData().name== "hurttriggerL" and fixtureB: getUserData().name == "Player" then
+    --     ball.body:setLinearVelocity(knockbacknegx, knockbacky)
+    -- end
+
+    -- if fixtureA:getUserData().name== "hurttriggerR" and fixtureB: getUserData().name == "Player" then
+    --     ball.body:setLinearVelocity(knockbackposx, knockbacky)
+
+    -- end
 
     if (fixtureA:getUserData().name == "stalactite" and fixtureB:getUserData().name == "groundrock") then
         -- Say that the stalactite can't fall anymore
@@ -619,20 +614,10 @@ function BeginContactPlayer(fixtureA, fixtureB)
         fixtureB:getUserData().groundContact = true
     end
 
-    -- if (fixtureB:getUserData().name == "platagrass4" and fixtureA:getUserData().name == "Player") or (fixtureA:getUserData().name == "platagrass4" and fixtureB:getUserData().name == "Player") then
-    --     win = true
-    --     UpdateWinCondition()
-    -- end
-
-    if fixtureA:getUserData().name== "WinningZone" and fixtureB: getUserData().name == "Player" then
-        win = true
-        UpdateWinCondition()
-    end
-
     if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
         if fixtureB:getUserData().body:getY() <= fixtureA:getUserData().body:getY() - 32 then
-            if timer > 0.3 then 
-                timer = 0.3
+            if ShootingTimer > 0.3 then 
+                ShootingTimer = 0.3
             end
             --print("Terrain contact")
         end
@@ -662,6 +647,15 @@ function EndContactPlayer(fixtureA, fixtureB)
         if currentFixture.typeOfEnemy == "bird" then
             BirdDeactivating(currentFixture.attachment)
         end
+
+    end
+
+    if fixtureA:getUserData().name == "WinZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
+        -- the way that the beign contact is strucutred, it wont allow player to press a button or be with zero velocity in order to win, Prob necessary another way to check
+        -- if love.keyboard.isDown("w") then
+        -- cahnges a flag so that in the pressing key it is activated
+        CanThePlayerWin = false
+        -- end
 
     end
 end
