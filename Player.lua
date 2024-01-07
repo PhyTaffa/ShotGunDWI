@@ -510,7 +510,7 @@ function DrawPlayer()
     --love.graphics.rectangle("fill", ball.body:getX() - 21* 2, ball.body:getY() - 32* 2, 21* 4, 32* 4)
     love.graphics.setColor(1,1,1)
     -- Gun being drawed before the player since it's supposed to rotate behind him
-    love.graphics.draw(gunSprite, ball.body:getX(), ball.body:getY() + 23, rotation, 1, 1, 0, 47)
+    love.graphics.draw(gunSprite, ball.body:getX(), ball.body:getY(), rotation, 1, 1, 0, 34)
     -- Player drawing
     love.graphics.draw(playerSprite, ball.body:getX()- 21*2, ball.body:getY()-42*2, 0)
 
