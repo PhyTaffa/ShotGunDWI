@@ -100,8 +100,8 @@ function LoadPlayerSounds()
     reloadSound = love.audio.newSource("/sounds/reloaddone.wav", "static")
     ammoCollectSound = love.audio.newSource("/sounds/ammopickup.wav", "static")
     shootSound = love.audio.newSource("/sounds/explosion.wav", "static" )
-    killFoxSound = love.audio.newSource("/sounds/foxtrim.wav", "static")
-    killBirdSound = love.audio.newSource("/sounds/crow.wav", "static")
+    killFoxSound = love.audio.newSource("/sounds/foxkillsound.wav", "static")
+    killBirdSound = love.audio.newSource("/sounds/birdkillsound.wav", "static")
 
     stalactiteFall = love.audio.newSource("/sounds/crack.wav", "static")
     stalactiteDeath = love.audio.newSource("/sounds/stalabreak.wav", "static")
@@ -626,6 +626,8 @@ function BeginContactPlayer(fixtureA, fixtureB)
             ball.body:setLinearVelocity(-knockbacknegx, knockbacky)
         end
     end
+
+
 end
 
 function EndContactPlayer(fixtureA, fixtureB)
@@ -640,7 +642,11 @@ function EndContactPlayer(fixtureA, fixtureB)
             BirdDeactivating(currentFixture.attachment)
         end
 
+        
+
     end
+
+
 
     if fixtureA:getUserData().name == "WinZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
 

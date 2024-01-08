@@ -258,6 +258,7 @@ function love.load()
                 fox.fixture = love.physics.newFixture(fox.body, fox.shape, 1)
                 fox.fixture:setUserData(fox)
                 fox.body:setFixedRotation(true)
+                fox.fixture:setFriction(1)
                 fox.index = i
                 fox.name = "fox"
                 fox.type = "enemy"
@@ -265,6 +266,17 @@ function love.load()
                 fox.Readytimer = 2.5
                 fox.attackTimer = 1
                 fox.uncovered = false
+                fox.anim = {}
+                fox.animTimer = 0
+                fox.animFrame = 1
+                fox.x = obj.x
+                fox.y = obj.y
+                fox.readyAnimTrig = false
+                fox.pounceAnimTrig= false
+            
+                    for j = 1, 12 do
+                        fox.anim[j] = love.graphics.newImage("/animations/fox_" .. j .. ".png")
+                    end
 
                 table.insert(foxes, fox)
             end
@@ -302,7 +314,18 @@ function love.load()
                 bird.viewangle = 0
 
                 bird.uncovered = false
+
+                bird.flyAnim = {}
+                bird.animTimer = 0
+                bird.animFrame = 1
+            
+                    for j = 1, 16 do
+                        bird.flyAnim[j] = love.graphics.newImage("/animations/Flying_" .. j .. ".png")
+                    end
+
                 
+
+
                 table.insert(birds, bird)
             end
         end
