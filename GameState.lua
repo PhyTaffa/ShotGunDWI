@@ -81,6 +81,7 @@ function KeyPressedGS(key)
 
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
 
+        love.event.quit('restart')
 
      end
 

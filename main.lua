@@ -33,6 +33,7 @@ local AmmoBoxs = {}
 local AmmoBoxImg
 local foxes = {}
 local birds = {}
+local stals = {}
 
 local WinZone
 
@@ -204,6 +205,7 @@ function love.load()
                 WinZone.fixture:setSensor(true)
                 WinZone.index = i
                 WinZone.name = "WinZone"
+                WinZone.img = love.graphics.newImage("Immages/flag.png")
 
             end
 
@@ -240,10 +242,10 @@ function love.load()
         --return Boundries, wall
     end
 
-    LoadAmmoBox(AmmoBoxs)
+    LoadAmmoBox(AmmoBoxs, WinZone)
 
     -- Enemies:
-    --         Bird
+    --         FOX
     if map.layers['FoxObj'] then
 
         for i, obj in pairs(map.layers['FoxObj'].objects) do
@@ -269,6 +271,7 @@ function love.load()
         end
     end
 
+    -- BIRD
     if map.layers['BirdObj'] then
 
         for i, obj in pairs(map.layers['BirdObj'].objects) do
@@ -287,7 +290,8 @@ function love.load()
                 bird.distance = 0
                 bird.body:setGravityScale(0)
                 bird.body:setLinearDamping(3)
-                
+                bird.soundTimer = 1
+
                 bird.chasing = false
                 bird.killed = false
                 bird.direciton = 1
@@ -304,7 +308,37 @@ function love.load()
         end
     end
 
-    LoadEnemies(world, foxes, birds)
+    --STALACTITE
+
+    if map.layers['StalactiteObj'] then
+
+        for i, obj in pairs(map.layers['StalactiteObj'].objects) do
+            local stal = {}
+
+            if obj.shape == "rectangle" then
+
+                stal.body = love.physics.newBody(world, obj.x + obj.width / 2 - 1, obj.y + obj.height / 2, "dynamic")
+                stal.shape = love.physics.newRectangleShape(obj.width,obj.height)
+                stal.fixture = love.physics.newFixture(stal.body, stal.shape, 0)
+                stal.fixture:setUserData(stal)
+                --stal.body:setFixedRotation(true)
+                stal.body:setGravityScale(0)
+                --stal.body:setMass(10000000)
+                stal.index = i
+                stal.name = "stalactite"
+                stal.type = "enemy"
+                stal.distance = 0
+                stal.Falling = false
+                stal.Readytimer = 2.5
+                stal.attackTimer = 1
+                stal.uncovered = false
+
+                table.insert(stals, stal)
+            end
+        end
+    end
+
+    LoadEnemies(world, foxes, birds, stals)
     LoadPlayerSounds()
     LoadEnemySounds()
 
@@ -340,8 +374,8 @@ function love.update(dt)
         local playerx, playery = PlayerPosition()
         UpdateEnemies(dt, playerx, playery,ball, world)
 
-        map:update(dt)
 
+        map:update(dt)
         world:update(dt)
     end
 
@@ -372,9 +406,6 @@ function love.draw()
 
     if CurrentState == STATE_IN_GAME then
 
-        --map:drawLayer(map.layers["background"])
-        
-
         camera:attach() 
 
         love.graphics.setColor(1,1,1)
@@ -389,13 +420,17 @@ function love.draw()
         map:drawLayer(map.layers["foxbush"])
         map:drawLayer(map.layers["car"])
         map:drawLayer(map.layers["platforms"])
-        --DrawMap()
-        
+
+
         DrawEnemy()
         DrawAmmoBox()
         DrawPlayer()
         DrawTrajectory()
+        --DrawEnemyTriggerZone()
         DrawShootingZone()
+        DrawShootingZoneCheat()
+
+        PlaceFlag()
 
         camera:detach()    
         

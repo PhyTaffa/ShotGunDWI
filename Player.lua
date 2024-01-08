@@ -3,6 +3,7 @@ require "GameState"
 
 local ball
 local ShootingTimer = 0.5
+local radius = 40
 local Stranded = false
 local CanThePlayerWin = false
 local ammo = 35
@@ -20,6 +21,7 @@ local anmmoConsumption = true
 
 --tiled table
 local AmmoBoxes
+local WinPostion
 
 --Tiled imgs
 local AmmoBoxImg
@@ -28,6 +30,7 @@ local gunSprite
 local customCursor
 local customCursorReloading
 local ammoCounterUI
+local ShootingBlast
 
 
 
@@ -38,6 +41,8 @@ local reloadSoundToggle = false
 local shootSound
 local killFoxSound
 local killBirdSound
+local stalactiteFall
+local stalactiteDeath
 
 -- Variables used for the rayCast
 local RayHitList = {}
@@ -55,7 +60,7 @@ function LoadPlayer(world)
     ball= {}
     ball.body = love.physics.newBody(world, 1000, 7542, "dynamic")
     --ball.shape = love.physics.newRectangleShape(21, 32)
-    ball.shape= love.physics.newCircleShape(40)
+    ball.shape= love.physics.newCircleShape(radius)
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0) -- 1 os the density which if it's diverse than zero will impact the mass accordingly to the given shape nad it's size
     ball.body:setMass(1)
     ball.body:setFixedRotation(true)
@@ -71,6 +76,7 @@ function LoadPlayer(world)
     customCursor = love.graphics.newImage("/Immages/cursor.png")
     customCursorReloading = love.graphics.newImage("/Immages/reloadingCursor.png")
     ammoCounterUI = love.graphics.newImage("/Immages/AmmoCounter.png")
+    ShootingBlast = love.graphics.newImage("/Immages/player/shotgunblast.png")
     
     
 
@@ -79,21 +85,26 @@ function LoadPlayer(world)
     return ball
 end
 
-function LoadAmmoBox(AmmoBoxs)
+function LoadAmmoBox(AmmoBoxs, WinZone)
 
     AmmoBoxes = AmmoBoxs
 
     AmmoBoxImg = love.graphics.newImage("Immages/AmmoBoxImg.png")
 
+    WinPostion = WinZone
+
 end
 
 function LoadPlayerSounds()
 
-    reloadSound = love.audio.newSource("/sounds/reloaddone.wav","static")
+    reloadSound = love.audio.newSource("/sounds/reloaddone.wav", "static")
     ammoCollectSound = love.audio.newSource("/sounds/ammopickup.wav", "static")
     shootSound = love.audio.newSource("/sounds/explosion.wav", "static" )
     killFoxSound = love.audio.newSource("/sounds/foxtrim.wav", "static")
     killBirdSound = love.audio.newSource("/sounds/crow.wav", "static")
+
+    stalactiteFall = love.audio.newSource("/sounds/crack.wav", "static")
+    stalactiteDeath = love.audio.newSource("/sounds/stalabreak.wav", "static")
 
 end
 
@@ -156,9 +167,20 @@ function UpdatePlayer(dt, camera, world)
         ShootingTimer = ShootingTimer-dt
     end
 
-    if reloadSoundToggle==true and ShootingTimer <= 0.438 then
+
+    --plays the reload timer before you can shoot and also stops the shooting sound and fixes a bug where rapid shooting repetition where missing sound
+    if reloadSoundToggle == true and ShootingTimer <= 0.438 then
+        love.audio.stop(shootSound)
         love.audio.play(reloadSound)
         reloadSoundToggle = false
+
+        DisplayShootingZone = false
+    end
+
+
+    --Makes the shooting balst being seen for longer than just a frame
+    if ShootingTimer <= 1.2 then
+        DisplayShootingZone = false
     end
 
 
@@ -235,8 +257,8 @@ function UpdatePlayer(dt, camera, world)
             ammo=ammo - 1
         end
         
-        ShootingTimer = 1.3  --1.5 reload ShootingTimer
         DisplayShootingZone = true
+        ShootingTimer = 1.3  --1.5 reload ShootingTimer
     end
     
     if love.mouse.isDown(2) then
@@ -414,7 +436,8 @@ function KeyPressedPlayer(key)
     end
 
     if key == "e" and ball.body:getLinearVelocity() == 0 and CanThePlayerWin == true then
-        ChangeGameState(STATE_WON)
+        --ChangeGameState(STATE_WON)
+        CanThePlayerWin = true
     end
 end
 
@@ -445,7 +468,8 @@ function KeyPressedPlyaer()
     end
 
     if love.keyboard.isDown("q") then
-        DisplayShootingZone = true
+        DisplayShootingZoneCheat = true
+        --DrawShootingZoneCheat()
     end
 
     -- if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
@@ -504,28 +528,31 @@ end
 function DrawShootingZone()
 
     if DisplayShootingZone == true then
-        love.graphics.setColor(0,1,0)
-        -- RotateDisplayShootingZone("fill", ball.x, ball.y, 1, 1, rotation)
-        -- RotateDisplayShootingZone("fill", ball.x, ball.y-100, 1, 1, rotation)
-        -- RotateDisplayShootingZone("fill", ball.x, ball.y+100, 1, 1, rotation)
-        --love.graphics.line(ball.x, ball.y, ActualShootingRange.x, ActualShootingRange.y)
-        
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(ShootingBlast, ball.body:getX(), ball.body:getY() - ShootingBlast:getHeight()/2 + ShootingBlast:getHeight()/2, rotation, 1 ,1, -radius - gunSprite:getWidth()/2 ,ShootingBlast:getHeight()/2)
+
+    end
+
+end
+
+function DrawShootingZoneCheat()
+    love.graphics.setColor(0,1,0)
+
+    if DisplayShootingZoneCheat then
         for i = 1, #rays, 1 do
             love.graphics.line(ball.x, ball.y, rays[i].x, rays[i].y)
         end
-
-        DisplayShootingZone = false
     end
-
+    DisplayShootingZoneCheat = false
 end
 
 function DrawCursor()
     -- ShootingTimer che inizia a 1.35 e termina a 0
     love.mouse.setVisible(false)
     if ShootingTimer <= 0.1 then
-        love.graphics.draw(customCursor, love.mouse.getX(), love.mouse.getY(), 0, 4, 4, 10, 1)
+        love.graphics.draw(customCursor, love.mouse.getX() - customCursor:getWidth()/2, love.mouse.getY() - customCursor:getHeight()/2)
     else
-        love.graphics.draw(customCursorReloading, love.mouse.getX() + 16, love.mouse.getY() + 17, 0, 4, 4, 10, 1)
+        love.graphics.draw(customCursorReloading, love.mouse.getX() - customCursorReloading:getWidth()/2, love.mouse.getY() - customCursorReloading:getHeight()/2)
     end
 end
 
@@ -553,37 +580,23 @@ function BeginContactPlayer(fixtureA, fixtureB)
 
         if currentFixture.typeOfEnemy == "bird" then
             BirdActivating(currentFixture.attachment)
+            currentFixture.attachment.soundTimer = 0
+        end
+
+        if currentFixture.typeOfEnemy == "stalactite" then
+            CanStalFall(currentFixture.attachment)
+            if currentFixture.attachment.body:isDestroyed() == false then
+                love.audio.play(stalactiteFall)
+            end
         end
 
     end
 
     if fixtureA:getUserData().name == "WinZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-        -- the way that the beign contact is strucutred, it wont allow player to press a button or be with zero velocity in order to win, Prob necessary another way to check
-        -- if love.keyboard.isDown("w") then
         -- cahnges a flag so that in the pressing key it is activated
         CanThePlayerWin = true
-        -- end
+        
 
-    end
-
-
-    -- if fixtureA:getUserData().name== "hurttriggerL" and fixtureB: getUserData().name == "Player" then
-    --     ball.body:setLinearVelocity(knockbacknegx, knockbacky)
-    -- end
-
-    -- if fixtureA:getUserData().name== "hurttriggerR" and fixtureB: getUserData().name == "Player" then
-    --     ball.body:setLinearVelocity(knockbackposx, knockbacky)
-
-    -- end
-
-    if (fixtureA:getUserData().name == "stalactite" and fixtureB:getUserData().name == "groundrock") then
-        -- Say that the stalactite can't fall anymore
-        fixtureA:getUserData().canFall = false
-    end
-
-    if (fixtureB:getUserData().name == "stalactite" and fixtureA:getUserData().type == "terrain") then
-        fixtureB:getUserData().canFall = false
-        fixtureB:getUserData().groundContact = true
     end
 
     if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
@@ -595,7 +608,14 @@ function BeginContactPlayer(fixtureA, fixtureB)
         end
     end
 
-    -- fox
+    if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "stalactite" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
+        if fixtureB:getUserData().body:getY() <= fixtureA:getUserData().body:getY() - 32 then -- stalactite on top of the terrain
+            fixtureB:getUserData().body:destroy()
+            love.audio.play(stalactiteDeath)
+        end
+    end
+
+    -- Generic enemy pushback
     if fixtureA:getUserData().type == "enemy" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
         local enemyX = fixtureA:getUserData().body:getX()
         local playerX = fixtureB:getUserData().body:getX()
@@ -623,11 +643,9 @@ function EndContactPlayer(fixtureA, fixtureB)
     end
 
     if fixtureA:getUserData().name == "WinZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
-        -- the way that the beign contact is strucutred, it wont allow player to press a button or be with zero velocity in order to win, Prob necessary another way to check
-        -- if love.keyboard.isDown("w") then
-        -- cahnges a flag so that in the pressing key it is activated
+
+        -- changes a flag so that in the pressing key it is activated
         CanThePlayerWin = false
-        -- end
 
     end
 end
@@ -640,11 +658,14 @@ end
 function KillEnemy(enemy)
     if enemy.name == "fox" then
         love.audio.play(killFoxSound)
-        love.graphics.print("cock", enemy.body:getX(), enemy.body:getY())
+        --love.graphics.print("cock", enemy.body:getX(), enemy.body:getY())
     end
 
     if enemy.name == "bird" then
         love.audio.play(killBirdSound)
+    end
+    if enemy.name == "stalactite" then
+        love.audio.play(stalactiteFall)
     end
 
     enemy.body:destroy()
@@ -706,3 +727,12 @@ end
 --     print("mouse pressed at: " .. x .. ", " .. y)
 -- end
 
+function PlaceFlag()
+    love.graphics.setColor(1,1,1)
+    if CanThePlayerWin then
+        love.graphics.draw(WinPostion.img, WinPostion.body:getX()- WinPostion.img:getWidth()/2, WinPostion.body:getY() - WinPostion.img:getHeight()/2)
+    end
+
+    
+
+end

@@ -299,36 +299,6 @@ function MainMenu()
 
     love.graphics.draw(logo, sw/2 - imgW * 3/2, logo:getHeight(), 0, ratioW, ratioH)
 
-    -- if GameEnded then
-    --     love.graphics.setColor(1,0.4,1)
-    -- end
-
-    --love.graphics.print(textMM, sw/2 - 350, sh/2 - logo:getHeight() * 2, 0, 2, 2)
-    -- else
-    --     love.graphics.setColor(1,1,1)
-    --     love.graphics.setFont(love.graphics.newFont(30))
-
-    --     love.graphics.draw(logo, sw/2- logo:getWidth() * 3, logo:getHeight(), 0, 3, 3)
-    --     love.graphics.print(textMM, sw/2 - 350, sh/2 - logo:getHeight() * 2, 0, 2, 2)
-
-    -- end
-    -- for i = 1, #BoxOptions do
-
-    --     local CurrentBox = BoxOptions[i]
-
-    --     -- love.graphics.setColor(1, 1, 1)
-    --     -- love.graphics.setFont(love.graphics.newFont(75))
-    --     -- love.graphics.print(textMainMenu[i], CurrentBox.body:getX() - w/10, CurrentBox.body:getY() - h/2)
-
-    -- end
-
-    -- love.graphics.setColor(1, 1, 1)
-    -- love.graphics.setFont(love.graphics.newFont(20))
-    -- love.graphics.print("play", BoxOptions[1].body:getX(), BoxOptions[1].body:getX() )
-    -- love.graphics.print("play", BoxOptions[2].body:getX(), BoxOptions[2].body:getX() )
-    
-    -- --CreateBoxOptions()
-
 end
 
 function Option()
@@ -355,23 +325,14 @@ function KeyPressedM(key, CurrentState)
         if CurrentState == STATE_IN_GAME_MENU then
             ChangeGameState(STATE_IN_GAME)
         end
+
+        if CurrentState == STATE_MAIN_MENU then
+            ChangeGameState(STATE_MAIN_MENU)
+
+            love.event.quit()
+        end
     end
 
-    -- if key == "n" then
-    --     print(GameEnded)
-    -- end
-
-    -- if key == "m" then
-    --     filing()
-    -- end
-
-    -- if key == "b" then
-    --     Wfiling()
-    -- end
-
-    -- if key == "k" then
-    --     print(Rfiling())
-    -- end
 end
 
 
@@ -576,7 +537,7 @@ function Credits()
     local My = love.mouse.getY()
 
     DrawCredits()
-    CheckMouseOverlappingGM(Mx, My, BoxOptionOption, textCredits)
+    CheckMouseOverlappingCredits(Mx, My, BoxOptionOption, textCredits)
 
     if creditTimer <= 0 then
         ChangeGameState(STATE_MAIN_MENU)
@@ -611,7 +572,51 @@ function DrawCredits()
     end
 end
 
+function CheckMouseOverlappingCredits(Mx, My, GameStateBoxes, CurrentText)
 
+
+    for i = 1, #GameStateBoxes, 1 do
+
+        CurrentBox = GameStateBoxes[i]
+
+        --check if mouse is inside boxes xor
+        if (Mx >= xMM - w/2 and Mx <= xMM + w/2) and (My >= (yGM[i]) - h/2 and My <= (yGM[i]) + h/2)  then 
+
+            
+            --print(yMM[i], h)
+            love.graphics.setColor(0.7, 0.7, 1)
+            love.graphics.polygon("line",  CurrentBox.body:getWorldPoints(CurrentBox.shape:getPoints()))
+
+            love.graphics.setColor(0.7, 0.7, 0)
+            love.graphics.setFont(love.graphics.newFont(60))
+            love.graphics.printf(CurrentText[i], CurrentBox.body:getX()- w/2, CurrentBox.body:getY() - h/2 , w, "center")
+            --love.graphics.print(textMainMenu[i], BoxOptions[i].body:getX() - w/10, BoxOptions[i].body:getY() - h/2)
+
+            --print("overlapping")
+
+            if love.mouse.isDown(1) and mouseTimer <= 0 and CurrentText[i] == "MAIN MENU " then
+                --print("mouse working")
+                mouseTimer = 0.2
+                love.audio.play(menuSound)
+                ChangeGameState(CurrentBox.state)
+                textMM = "Pebbles and amoguses +"
+                --GameEnded = true
+                --ChangeSaveInfo()
+
+            end
+
+            if love.mouse.isDown(1) and mouseTimer <= 0 then
+                --print("mouse working")
+                mouseTimer = 0.2
+                love.audio.play(menuSound)
+                ChangeGameState(CurrentBox.state)
+            end
+
+            --funny feddback and state changments
+        end
+    end
+
+end
 ---------------------------files
 
 -- function LoadSaveInfo()

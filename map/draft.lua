@@ -10,7 +10,7 @@ return {
   tilewidth = 64,
   tileheight = 64,
   nextlayerid = 41,
-  nextobjectid = 447,
+  nextobjectid = 449,
   properties = {},
   tilesets = {
     {
@@ -22,7 +22,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 16,
-      image = "/Tileset.png",
+      image = "./Tileset.png",
       imagewidth = 1024,
       imageheight = 1024,
       objectalignment = "unspecified",
@@ -1738,7 +1738,7 @@ return {
           x = 2560,
           y = 3072,
           width = 64,
-          height = 192,
+          height = 128,
           rotation = 0,
           visible = true,
           properties = {}
