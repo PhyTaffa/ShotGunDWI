@@ -551,9 +551,9 @@ function DrawCursor()
     -- ShootingTimer che inizia a 1.35 e termina a 0
     love.mouse.setVisible(false)
     if ShootingTimer <= 0.1 then
-        love.graphics.draw(customCursor, love.mouse.getX(), love.mouse.getY(), 0, 4, 4, 10, 1)
+        love.graphics.draw(customCursor, love.mouse.getX(), love.mouse.getY(), 0, 1, 1, 24,24)
     else
-        love.graphics.draw(customCursorReloading, love.mouse.getX() + 16, love.mouse.getY() + 17, 0, 4, 4, 10, 1)
+        love.graphics.draw(customCursorReloading, love.mouse.getX() + 16, love.mouse.getY() + 17, 0, 1, 1, 48,48)
     end
 end
 
@@ -634,6 +634,11 @@ function BeginContactPlayer(fixtureA, fixtureB)
             ball.body:setLinearVelocity(-knockbacknegx, knockbacky)
         end
     end
+
+    if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "fox" then
+        fixtureB:getUserData().pounceAnimTrig= false
+    end
+    
 end
 
 function EndContactPlayer(fixtureA, fixtureB)
@@ -648,6 +653,12 @@ function EndContactPlayer(fixtureA, fixtureB)
             BirdDeactivating(currentFixture.attachment)
         end
 
+        
+
+    end
+
+    if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "fox" then
+        fixtureB:getUserData().pounceAnimTrig= true
     end
 
     if fixtureA:getUserData().name == "WinZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")

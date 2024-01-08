@@ -38,7 +38,6 @@ function LoadMap(world)
     love.audio.play(bgm)
 
     WinningScreen = love.graphics.newImage("Immages/sunset.png")
-    ltg = love.graphics.newImage("ltg.png")
 
     logo = love.graphics.newImage("/Immages/logo.png")
 
