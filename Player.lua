@@ -2,7 +2,7 @@ require "vector2"
 require "GameState"
 
 local ball
-local ShootingTimer = 0.2
+local ShootingTimer = 0.5
 local Stranded = false
 local CanThePlayerWin = false
 local ammo = 35
@@ -272,7 +272,13 @@ function UpdatePlayer(dt, camera, world)
     end
 
     if cheats == false then
-        KeyPressedPlyaer(world)
+        KeyPressedPlyaer()
+    end
+
+    if GravityChangin == false then
+        ball.body:setGravityScale(0)
+    else
+        ball.body:setGravityScale(1)
     end
 
 end
@@ -398,26 +404,34 @@ end
 --     end
 -- end
 
-function KeyPressedPlyaer(world)
-    if love.keyboard.isDown("space") then
+function KeyPressedPlayer(key)
+    if key == "space" then
         GravityChangin = not GravityChangin
     end
 
-    if love.keyboard.isDown("z") then
-        print(ball.body:getPosition())
+    if love.keyboard.isDown("a") then
+        anmmoConsumption = not anmmoConsumption
     end
+
+    if key == "e" and ball.body:getLinearVelocity() == 0 and CanThePlayerWin == true then
+        ChangeGameState(STATE_WON)
+    end
+end
+
+function KeyPressedPlyaer()
+    -- if love.keyboard.isDown("space") then
+    --     GravityChangin = not GravityChangin
+    -- end
+
+    -- if love.keyboard.isDown("z") then
+    --     print(ball.body:getPosition())
+    -- end
     
     -- if GravityChangin == false then
     --     world:setGravity( 0, 150 * love.physics.getMeter() )
     -- else
     --     world:setGravity( 0, 0 )
     -- end
-
-    if GravityChangin == false then
-        ball.body:setGravityScale(0)
-    else
-        ball.body:setGravityScale(1)
-    end
 
     if love.keyboard.isDown("right") then
 
@@ -447,9 +461,6 @@ function KeyPressedPlyaer(world)
         DisplayShootingZone = true
     end
 
-    if love.keyboard.isDown("a") then
-        anmmoConsumption = false
-    end
     -- if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
 
     --     knockbacktoggle = true
@@ -465,10 +476,6 @@ function KeyPressedPlyaer(world)
     --         knockbacky = -2800
     --         knockbacktoggletimer = 1
     -- end
-
-    if love.keyboard.isDown("e") and ball.body:getLinearVelocity() == 0 and CanThePlayerWin == true then
-        ChangeGameState(STATE_WON)
-    end
 
 end
 

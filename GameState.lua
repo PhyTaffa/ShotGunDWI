@@ -57,7 +57,7 @@ function KeyPressedGS(key)
     if key == "1" then
         PreviousState = SelectedState
         SelectedState = STATE_IN_GAME
-        love.mouse.setVisible(false)
+        --love.mouse.setVisible(false)
 
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
     end
@@ -66,7 +66,7 @@ function KeyPressedGS(key)
         PreviousState = SelectedState
 
         SelectedState = STATE_OPTIONS
-        love.mouse.setVisible(true)
+        --love.mouse.setVisible(true)
 
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
 
@@ -77,7 +77,7 @@ function KeyPressedGS(key)
         PreviousState = SelectedState
 
         SelectedState = STATE_MAIN_MENU
-        love.mouse.setVisible(true)
+        --love.mouse.setVisible(true)
 
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
 
@@ -87,7 +87,7 @@ function KeyPressedGS(key)
      if key == "4" then
         PreviousState = SelectedState
         SelectedState = STATE_WON
-        love.mouse.setVisible(true)
+        --love.mouse.setVisible(true)
 
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
 
@@ -97,7 +97,7 @@ function KeyPressedGS(key)
      if key == "5" then
         PreviousState = SelectedState
         SelectedState = STATE_STRANDED
-        love.mouse.setVisible(true)
+        --love.mouse.setVisible(true)
 
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
 
@@ -107,7 +107,7 @@ function KeyPressedGS(key)
         PreviousState = SelectedState
         if SelectedState == STATE_IN_GAME then
             SelectedState = STATE_IN_GAME_MENU
-            love.mouse.setVisible(true)
+            --love.mouse.setVisible(true)
             print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
 
         else
@@ -119,7 +119,7 @@ function KeyPressedGS(key)
      if key == "7" then
         PreviousState = SelectedState
         SelectedState = STATE_CREDITS
-        love.mouse.setVisible(true)
+        --love.mouse.setVisible(true)
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
 
      end
@@ -144,4 +144,5 @@ function KeyPressedGS(key)
    
         print("Current State is ", SelectedState ,", Previous one was ", PreviousState)
      end
+     
 end

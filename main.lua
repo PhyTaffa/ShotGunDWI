@@ -39,7 +39,7 @@ local WinZone
 --
 
 love.window.setMode( 1920, 1080)
---love.window.setFullscreen(true)
+love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
@@ -67,6 +67,9 @@ function love.load()
     LoadMainMenu(world)
     LoadStrandedMenu(world)
     LoadWinMenu(world)
+    LoadGameMenu(world)
+    LoadOptionMenu(world)
+    LoadCredits(world)
     --LoadAmmoBox(world)
 
     -- tiled stuff to be moved, possibly idk if necessary to be kept on main
@@ -74,7 +77,7 @@ function love.load()
 	map:box2d_init(world)
     map:addCustomLayer("Sprite Layer", 3)
 
-	--physics objs associastion
+	--physics objs association
 
 
 
@@ -305,6 +308,8 @@ function love.load()
     LoadPlayerSounds()
     LoadEnemySounds()
 
+    --LoadSaveInfo()
+
 end
 
 
@@ -317,15 +322,7 @@ function EndContact(fixtureA,fixtureB)
     EndContactPlayer(fixtureA, fixtureB)
 end
 
-function love.keypressed(key, scancode, isrepeat)
 
-    --key = GetKey()
-    print("hi")
-    KeyPressedGS(key)
-    KeyPressedM(key)
- 
-
-end
 
 
 
@@ -333,8 +330,8 @@ end
 function love.update(dt)
 
     CurrentState = ReturnCurrentGameState()
-    DecreaseMouseTimer(dt)
-    
+    UpdateMenusTimers(dt)
+
     if CurrentState == STATE_IN_GAME then
         camera:update(dt)
         
@@ -355,6 +352,21 @@ function love.update(dt)
 
 
 end
+
+function love.keypressed(key, scancode, isrepeat)
+
+    --print("hi")
+    KeyPressedGS(key)
+    KeyPressedM(key, CurrentState)
+    KeyPressedPlayer(key)
+
+    if key == "v" then
+        -- kinda wierd way to restart the program, it works
+        love.event.quit("restart")
+    end
+
+end
+
 
 function love.draw()
 
@@ -395,6 +407,8 @@ function love.draw()
     end
 
     if CurrentState == STATE_STRANDED then
+        love.mouse.setVisible(true)
+
         camera:attach() 
 
         love.graphics.setColor(1,1,1)
@@ -428,16 +442,22 @@ function love.draw()
     end
 
     if CurrentState == STATE_WON then --winning
+        love.mouse.setVisible(true)
+
         Winning()
         --DrawCursor()
     end
 
     if CurrentState == STATE_MAIN_MENU then --winning
+        love.mouse.setVisible(true)
+
         MainMenu()
 
     end
 
     if CurrentState == STATE_IN_GAME_MENU then --In game menus
+        love.mouse.setVisible(true)
+
         love.graphics.setColor(1, 1, 1, 0.4) --makes evrything more opaqe so that the focus is drawn on the menu
         camera:attach() 
         
@@ -462,10 +482,14 @@ function love.draw()
         camera:detach()    
         
         DrawUI()
+
+        GameMenu()
         --DrawCursor()
     end
 
     if CurrentState == STATE_CREDITS then --In game menus
+        love.mouse.setVisible(true)
+
         love.graphics.setColor(0.3, 0.3, 1, 0.7) --makes evrything more opaqe so that the focus is drawn on the menu
         camera:attach() 
         
@@ -490,36 +514,40 @@ function love.draw()
         camera:detach()    
         
         DrawUI()
+        
+        Credits()
         --DrawCursor()
     end
 
 
     if CurrentState == STATE_OPTIONS then
-        camera:attach() 
+        love.mouse.setVisible(true)
+        -- camera:attach() 
 
-        love.graphics.setColor(1,0,1)
+        -- love.graphics.setColor(1,0,1)
         
-        map:drawLayer(map.layers["background"])
-        map:drawLayer(map.layers["Ground"])
+        -- map:drawLayer(map.layers["background"])
+        -- map:drawLayer(map.layers["Ground"])
         
-        map:drawLayer(map.layers["florathree"])
-        map:drawLayer(map.layers["floratwo"])
-        map:drawLayer(map.layers["flora"])
+        -- map:drawLayer(map.layers["florathree"])
+        -- map:drawLayer(map.layers["floratwo"])
+        -- map:drawLayer(map.layers["flora"])
         
-        map:drawLayer(map.layers["foxbush"])
-        map:drawLayer(map.layers["car"])
-        map:drawLayer(map.layers["platforms"])
+        -- map:drawLayer(map.layers["foxbush"])
+        -- map:drawLayer(map.layers["car"])
+        -- map:drawLayer(map.layers["platforms"])
 
         
-        DrawEnemy()
-        DrawAmmoBox()
-        DrawPlayer()
-        DrawTrajectory()
-        DrawShootingZone()
+        -- DrawEnemy()
+        -- DrawAmmoBox()
+        -- DrawPlayer()
+        -- DrawTrajectory()
+        -- DrawShootingZone()
 
-        camera:detach()    
+        -- camera:detach()    
         
-        DrawUI()
+        -- DrawUI()
+        Option()
         --DrawCursor()
 
 
