@@ -595,6 +595,7 @@ function BeginContactPlayer(fixtureA, fixtureB)
 
         if currentFixture.typeOfEnemy == "bird" then
             BirdActivating(currentFixture.attachment)
+            currentFixture.attachment.IsChasing = true
         end
 
     end
@@ -661,6 +662,7 @@ function EndContactPlayer(fixtureA, fixtureB)
 
         if currentFixture.typeOfEnemy == "bird" then
             BirdDeactivating(currentFixture.attachment)
+            currentFixture.attachment.IsChasing = false
         end
 
     end

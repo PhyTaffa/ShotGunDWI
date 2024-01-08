@@ -35,7 +35,7 @@ local birds = {}
 --
 
 --love.window.setMode( 1920, 1080)
---love.window.setFullscreen(true)
+love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
@@ -269,6 +269,8 @@ function love.load()
                 bird.wayPoint2X = bird.x + 300
                 bird.wayPoint2Y = bird.y
 
+                bird.IsChasing = false
+
 
 
                 local px1 = bird.x
@@ -361,7 +363,7 @@ function love.update(dt)
         camera:update(dt)
         
         CurrentState = UpdatePlayer(dt, camera, world, CurrentState)
-        UpdateTriggerPosition()
+        --UpdateTriggerPosition()
         -- CurrentState = UpdateGameStatus()
 
         -- if love.keyboard.isDown("e") then
