@@ -7,8 +7,6 @@ require "GameState"
 
 
 local world
-local Stranded = false
-local win = false
 local ball
 
 -- Game States
@@ -21,6 +19,8 @@ STATE_IN_GAME_MENU = 6
 STATE_CREDITS = 7
 
 local CurrentState = STATE_MAIN_MENU
+
+
 -- tiled implementation, should be moved away from the main
 local sti = require "sti"
 local map
@@ -38,8 +38,8 @@ local WinZone
 
 --
 
---love.window.setMode( 1920, 1080)
-love.window.setFullscreen(true)
+love.window.setMode( 1920, 1080)
+--love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
@@ -65,6 +65,8 @@ function love.load()
 
     LoadMap(world)
     LoadMainMenu(world)
+    LoadStrandedMenu(world)
+    LoadWinMenu(world)
     --LoadAmmoBox(world)
 
     -- tiled stuff to be moved, possibly idk if necessary to be kept on main
@@ -293,7 +295,7 @@ function love.load()
                 bird.viewangle = 0
 
                 bird.uncovered = false
-
+                
                 table.insert(birds, bird)
             end
         end
@@ -310,20 +312,33 @@ function BeginContact(fixtureA,fixtureB)
     BeginContactPlayer(fixtureA, fixtureB)
 end
 
+
 function EndContact(fixtureA,fixtureB)
     EndContactPlayer(fixtureA, fixtureB)
 end
 
+function love.keypressed(key, scancode, isrepeat)
+
+    --key = GetKey()
+    print("hi")
+    KeyPressedGS(key)
+    KeyPressedM(key)
+ 
+
+end
+
+
+
 
 function love.update(dt)
 
-    CurrentState = ChangeGameState1()
-
+    CurrentState = ReturnCurrentGameState()
+    DecreaseMouseTimer(dt)
+    
     if CurrentState == STATE_IN_GAME then
         camera:update(dt)
         
         UpdatePlayer(dt, camera, world)
-        UpdateTriggerPosition()
 
         local playerx, playery = PlayerPosition()
         UpdateEnemies(dt, playerx, playery,ball, world)
@@ -423,7 +438,7 @@ function love.draw()
     end
 
     if CurrentState == STATE_IN_GAME_MENU then --In game menus
-        love.graphics.setColor(1, 1, 1, 0.7) --makes evrything more opaqe so that the focus is drawn on the menu
+        love.graphics.setColor(1, 1, 1, 0.4) --makes evrything more opaqe so that the focus is drawn on the menu
         camera:attach() 
         
         map:drawLayer(map.layers["background"])
@@ -448,6 +463,68 @@ function love.draw()
         
         DrawUI()
         --DrawCursor()
+    end
+
+    if CurrentState == STATE_CREDITS then --In game menus
+        love.graphics.setColor(0.3, 0.3, 1, 0.7) --makes evrything more opaqe so that the focus is drawn on the menu
+        camera:attach() 
+        
+        map:drawLayer(map.layers["background"])
+        map:drawLayer(map.layers["Ground"])
+        
+        map:drawLayer(map.layers["florathree"])
+        map:drawLayer(map.layers["floratwo"])
+        map:drawLayer(map.layers["flora"])
+        
+        map:drawLayer(map.layers["foxbush"])
+        map:drawLayer(map.layers["car"])
+        map:drawLayer(map.layers["platforms"])
+
+        
+        DrawEnemy()
+        DrawAmmoBox()
+        DrawPlayer()
+        DrawTrajectory()
+        DrawShootingZone()
+
+        camera:detach()    
+        
+        DrawUI()
+        --DrawCursor()
+    end
+
+
+    if CurrentState == STATE_OPTIONS then
+        camera:attach() 
+
+        love.graphics.setColor(1,0,1)
+        
+        map:drawLayer(map.layers["background"])
+        map:drawLayer(map.layers["Ground"])
+        
+        map:drawLayer(map.layers["florathree"])
+        map:drawLayer(map.layers["floratwo"])
+        map:drawLayer(map.layers["flora"])
+        
+        map:drawLayer(map.layers["foxbush"])
+        map:drawLayer(map.layers["car"])
+        map:drawLayer(map.layers["platforms"])
+
+        
+        DrawEnemy()
+        DrawAmmoBox()
+        DrawPlayer()
+        DrawTrajectory()
+        DrawShootingZone()
+
+        camera:detach()    
+        
+        DrawUI()
+        --DrawCursor()
+
+
+        --GamingOver()
+
     end
     
 end

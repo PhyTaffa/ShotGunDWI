@@ -8,6 +8,9 @@ STATE_WON = 4
 STATE_STRANDED = 5
 STATE_IN_GAME_MENU = 6
 STATE_CREDITS = 7
+STATE_QUIT = 8
+
+local GameStateArray = {}
 
 local logo
 local WinningScreen
@@ -16,6 +19,8 @@ local bgm
 
 local sw, sh
 local BoxOptionsMM = {}
+local BoxOptionsStranded = {}
+local BoxOptionsWin = {}
 local BoxOption
 
 
@@ -26,9 +31,14 @@ local w
 local h
 
 local textMainMenu = {"PLAY", "OPTION", "QUIT"}
+local textStranded = {"MAIN MENU", "QUIT"}
+local textWin = {"CREDITS"}
 
 -- sounds
 local menuSound
+
+
+local mouseTimer = 0
 
 
 function LoadMap(world)
@@ -38,7 +48,6 @@ function LoadMap(world)
     love.audio.play(bgm)
 
     WinningScreen = love.graphics.newImage("Immages/sunset.png")
-    ltg = love.graphics.newImage("ltg.png")
 
     logo = love.graphics.newImage("/Immages/logo.png")
 
@@ -58,18 +67,18 @@ end
 
 function LoadMainMenu(world)
     xMM = sw/2
-    yMM[1] = sh / 2 + h
+    yMM[1] = sh/2 + h
 
 
 
-    for i = 1, 3, 1 do
+    for i = 1, #textMainMenu, 1 do
 
         local xi = xMM
         local yi = yMM[i]
 
-        CreateBoxOptions(world, xi, yi, w, h, i)
+        CreateBoxOptions(world, xi, yi, w, h, i, BoxOptionsMM, textMainMenu)
 
-        yMM[i+1] = yMM[i] +200
+        yMM[i+1] = yMM[i] + h * 2
 
         print(xMM, " ", yi, " ", w, h, i)
     end
@@ -79,6 +88,12 @@ end
 
 function GamingOver()
 
+    local Mx = love.mouse:getX()
+    local My = love.mouse.getY()
+
+    DrawStrandedMenu()
+    CeckMouseOverlapping(Mx, My, BoxOptionsStranded, textStranded)
+
     love.graphics.setColor(0, 0, 0, 0.7)
     love.graphics.rectangle("fill", 0, sh/3, sw, sh/3)
 
@@ -86,7 +101,47 @@ function GamingOver()
     love.graphics.setFont(love.graphics.newFont(200))
     love.graphics.print("YOU STRANDED", sw/3 - sw/10, sh/2 - sh/10)
 
+    
 end
+
+function LoadStrandedMenu(world)
+    xMM = sw/2
+    yMM[1] = sh/2 + h
+
+
+
+    for i = 1, #textStranded, 1 do
+
+        local xi = xMM
+        local yi = yMM[i]
+
+        CreateBoxOptions(world, xi, yi, w, h, i, BoxOptionsStranded, textStranded)
+
+        yMM[i+1] = yMM[i] + h * 2
+
+        print(xMM, " ", yi, " ", w, h, i)
+    end
+end
+
+function LoadWinMenu(world)
+    xMM = sw/2
+    yMM[1] = sh/2 + h
+
+
+
+    for i = 1, #textWin, 1 do
+
+        local xi = xMM
+        local yi = yMM[i]
+
+        CreateBoxOptions(world, xi, yi, w, h, i, BoxOptionsWin, textWin)
+
+        yMM[i+1] = yMM[i] + h * 2
+
+        print(xMM, " ", yi, " ", w, h, i)
+    end
+end
+
 
 function Winning()
 
@@ -99,6 +154,13 @@ function Winning()
     love.graphics.setColor(1,1,1)
     love.graphics.draw(WinningScreen, 0, 0, 0 ,ratioW, ratioH)
 
+
+    local Mx = love.mouse:getX()
+    local My = love.mouse.getY()
+
+    DrawWinMenu()
+    CeckMouseOverlapping(Mx, My, BoxOptionsWin, textWin)
+
 end
 
 function MainMenu()
@@ -107,13 +169,13 @@ function MainMenu()
     local My = love.mouse.getY()
 
     DrawMainMenu()
-    CeckMouseOverlapping(Mx, My, BoxOptionsMM)
+    CeckMouseOverlapping(Mx, My, BoxOptionsMM, textMainMenu)
 
     love.graphics.setColor(1,1,1)
     love.graphics.setFont(love.graphics.newFont(30))
 
-    love.graphics.draw(logo, sw/2- logo:getWidth() * 3, sh/7, 0, 6, 6)
-    love.graphics.print("Pebbles and amoguses", sw/2 - 350, sh/2,0,2,2)
+    love.graphics.draw(logo, sw/2- logo:getWidth() * 3, logo:getHeight(), 0, 3, 3)
+    love.graphics.print("Pebbles and amoguses", sw/2 - 350, sh/2 - logo:getHeight() * 2, 0, 2, 2)
 
     -- for i = 1, #BoxOptions do
 
@@ -134,15 +196,28 @@ function MainMenu()
 
 end
 
-function CeckMouseOverlapping(Mx, My, GameStateBoxes)
-    
+function KeyPressedM(key)
+    if key == "x" then
+        
+        --GetWantedState(CurrentBox.state)
+        --GetKey("x")
+        
+        love.audio.play(menuSound)
+        --ChangeGameState(ReturnCurrentGameState())
+        ChangeGameState(STATE_IN_GAME)
+    end
+end
+
+
+function CeckMouseOverlapping(Mx, My, GameStateBoxes, CurrentText)
+
 
     for i = 1, #GameStateBoxes, 1 do
 
         CurrentBox = GameStateBoxes[i]
 
         --check if mouse is inside boxes xor
-        if (Mx >= xMM - w/2 and Mx <= xMM + w/2) and (My >= yMM[i] and My <= yMM[i] + h)  then 
+        if (Mx >= xMM - w/2 and Mx <= xMM + w/2) and (My >= yMM[i] - h/2 and My <= yMM[i] + h/2)  then 
 
             
             --print(yMM[i], h)
@@ -151,20 +226,29 @@ function CeckMouseOverlapping(Mx, My, GameStateBoxes)
 
             love.graphics.setColor(0.7, 0.7, 0)
             love.graphics.setFont(love.graphics.newFont(75))
-            love.graphics.printf(textMainMenu[i], CurrentBox.body:getX()- w/2, CurrentBox.body:getY() - h/2 , w, "center")
+            love.graphics.printf(CurrentText[i], CurrentBox.body:getX()- w/2, CurrentBox.body:getY() - h/2 , w, "center")
             --love.graphics.print(textMainMenu[i], BoxOptions[i].body:getX() - w/10, BoxOptions[i].body:getY() - h/2)
 
-            if love.keyboard.isDown("x") then
-                love.audio.play(menuSound)
+            --print("overlapping")
+
+            if love.mouse.isDown(1) and mouseTimer <= 0 then
+                print("mouse working")
+                mouseTimer = 0.2
                 ChangeGameState(CurrentBox.state)
-                --print("overlapping")
+            end
 
             --funny feddback and state changments
-            end
         end
     end
 
 end
+
+function DecreaseMouseTimer(dt)
+    if mouseTimer > 0 then
+        mouseTimer = mouseTimer - dt
+    end 
+end
+
 
 function DrawMainMenu()
 
@@ -181,9 +265,42 @@ function DrawMainMenu()
     end
 end
 
-function CreateBoxOptions(world, Tx, y, w, h, i)
 
-    local yi = y + h/2
+function DrawStrandedMenu()
+
+    for i = 1, #BoxOptionsStranded do
+
+        local CurrentBox = BoxOptionsStranded[i]
+        love.graphics.setColor(0.3, 0.3, 0.3)
+        love.graphics.polygon("fill", CurrentBox.body:getWorldPoints(CurrentBox.shape:getPoints()))
+
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(love.graphics.newFont(75))
+        love.graphics.printf(textStranded[i], CurrentBox.body:getX()- w/2, CurrentBox.body:getY() - h/2 , w, "center")
+        --love.graphics.print(textMainMenu[i], CurrentBox.body:getX() - w/10, CurrentBox.body:getY() - h/2)
+    end
+end
+
+
+function DrawWinMenu()
+
+    for i = 1, #BoxOptionsWin do
+
+        local CurrentBox = BoxOptionsWin[i]
+        love.graphics.setColor(0.3, 0.3, 0.3)
+        love.graphics.polygon("fill", CurrentBox.body:getWorldPoints(CurrentBox.shape:getPoints()))
+
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(love.graphics.newFont(75))
+        love.graphics.printf(textWin[i], CurrentBox.body:getX()- w/2, CurrentBox.body:getY() - h/2 , w, "center")
+        --love.graphics.print(textMainMenu[i], CurrentBox.body:getX() - w/10, CurrentBox.body:getY() - h/2)
+    end
+end
+
+
+function CreateBoxOptions(world, Tx, y, w, h, i, BoxTable, TextList)
+
+    local yi = y
 
     BoxOption = {}
 
@@ -192,13 +309,31 @@ function CreateBoxOptions(world, Tx, y, w, h, i)
     BoxOption.fixture = love.physics.newFixture(BoxOption.body, BoxOption.shape, 1)
     BoxOption.fixture:setUserData(BoxOption)
     BoxOption.fixture:setSensor(true)
-    BoxOption.state = i
 
-    if i == STATE_MAIN_MENU then
+    CurrentText = TextList[i]
+
+    if CurrentText == "MAIN MENU" then
+        BoxOption.state = STATE_MAIN_MENU
+    end
+
+    if CurrentText == "QUIT" then
         BoxOption.state = STATE_QUIT
     end
 
-    table.insert(BoxOptionsMM, BoxOption)
+    if CurrentText == "OPTION" then
+        BoxOption.state = STATE_OPTIONS
+    end
+
+    if CurrentText == "PLAY" then
+        BoxOption.state = STATE_IN_GAME
+    end
+
+    if CurrentText == "CREDITS" then
+        BoxOption.state = STATE_CREDITS
+    end
+    
+
+    table.insert(BoxTable, BoxOption)
 
     -- table.insert(BoxOptions, BoxOption)
 end

@@ -2,7 +2,7 @@ require "vector2"
 require "GameState"
 
 local ball
-local ShootingTimer = 0
+local ShootingTimer = 0.2
 local Stranded = false
 local CanThePlayerWin = false
 local ammo = 35
@@ -41,7 +41,7 @@ local killBirdSound
 
 -- Variables used for the rayCast
 local RayHitList = {}
-local shootingRange = 500 --400
+local shootingRange = 400 --400
 local shootingAmplitude = 45 --45
 local shootingRays = 11 --11
 local rays
@@ -49,31 +49,6 @@ local rays
 --Camera dragging
 local targetToFollowX, targetToFollowY
 
--- function Noknockback()
-
---     if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
-
---         knockbacktoggle = true
---         knockbacknegx = 0
---         knockbackposx = 0
---         knockbacky = 0
---         knockbacktoggletimer = 1
---     elseif love.keyboard.isDown("s") and knockbacktoggle==true and knockbacktoggletimer <=0 then
-
---             knockbacktoggle = false
---             knockbacknegx = -1200
---             knockbackposx = 1200
---             knockbacky = -2800
---             knockbacktoggletimer = 1
---         end
--- end
-
--- function Updatetoggletimer(dt)
-
---     if knockbacktoggletimer > 0 then
---         knockbacktoggletimer = knockbacktoggletimer -dt
---     end
--- end
 
 function LoadPlayer(world)
 
@@ -265,7 +240,7 @@ function UpdatePlayer(dt, camera, world)
     end
     
     if love.mouse.isDown(2) then
-        targetToFollowX, targetToFollowY = MoveCamera(CameraDisplacment.x, CameraDisplacment.y, rotation)
+        targetToFollowX, targetToFollowY = MoveCamera(CameraDisplacment.x, CameraDisplacment.y)
     end
 
     camera:follow(targetToFollowX, targetToFollowY)
@@ -302,9 +277,8 @@ function UpdatePlayer(dt, camera, world)
 
 end
 
-function MoveCamera(CameraDisplacmentX, CameraDisplacmentY, rotation)
+function MoveCamera(CameraDisplacmentX, CameraDisplacmentY)
     --Will check for the camera to not move outside the said range, the one of the shootingRange
-    --local ActualCameraDisplacment = vector2.new(MaxCameraDisplacment)
 
 
     --mouse position
@@ -317,19 +291,23 @@ function MoveCamera(CameraDisplacmentX, CameraDisplacmentY, rotation)
     -- ^ this part is similar to getting the player position
     -- |
 
+
     -- associating the camera min position as a vector
     local Camera = vector2.new(CameraDisplacmentX, CameraDisplacmentY)
+
 
     -- finding the magnitude for checking purposes
     local MaxDisplacmentMagnitude = vector2.magnitude(Camera)
     local playerToMouseMagnitude =  vector2.magnitude(playerToMouse)
 
+
     -- natural followinf position, the coordinates of the mosue
     local targetX = playerToMouse.x
     local targetY = playerToMouse.y
 
+
     -- if the mouse is inside the circle, it gets moved and makes the camera works(as intended btw[completely not luck])
-    if playerToMouseMagnitude < MaxDisplacmentMagnitude then
+    if playerToMouseMagnitude < MaxDisplacmentMagnitude - 300 then
         -- changes teh values accordingly
         targetX = Camera.x
         targetY = Camera.y
