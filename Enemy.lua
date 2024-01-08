@@ -11,11 +11,10 @@ local DetectionZones = {}
 local foxSound
 local birdSound
 local birdSoundTimer = 0.1
-local stalactiteSound
 
 --Fox Forces
-local inReachX = 4000
-local inReachY = 1600
+local inReachX = 2600
+local inReachY = 1800
 
 local outsideReachX = 1300
 local outsideReachY = 5000
@@ -36,81 +35,84 @@ function LoadEnemySounds()
 
     foxSound = love.audio.newSource("/sounds/foxtrim.wav","static")
     birdSound = love.audio.newSource("/sounds/crow.wav","static")
-    stalactiteSound = love.audio.newSource("/sounds/crack.wav","static")
 
 end
 
 function FoxBehaviourTiled(dt)
 
     for i = 1, #foxes do
-
-        
-        
-
         local CurrentFox = foxes[i]
 
         if CurrentFox.body:isDestroyed() == false and CurrentFox.uncovered == true then
-
-            print(CurrentFox.attackTimer)
-
-
         
-            if CurrentFox.Readytimer > 0 then --timer function for idle animation. Future-proofing for after the prototyping delivery
-                
+            if CurrentFox.attackTimer <= 0 then
+
                 CurrentFox.readyAnimTrig = false
+                
+                print("Attack!")
+                local Xplayer, YPlayer = PlayerPosition()
+                local playerPos = vector2.new(Xplayer - CurrentFox.body:getX(), YPlayer - CurrentFox.body:getY())
+                local playerMag = vector2.magnitude(playerPos)
 
-                CurrentFox.Readytimer = CurrentFox.Readytimer - dt
+                --making the fox jump to the player if in reach or with a precise trajectory
+                if playerMag > 10*64 then
+                    -- if player is outside of reach
 
-                if CurrentFox.Readytimer <= 0 then
-
-                    CurrentFox.readyAnimTrig = true
-                    CurrentFox.attackTimer = CurrentFox.attackTimer - dt
-
-                        if CurrentFox.attackTimer <= 0 then
-
-                            love.audio.play(foxSound)
-                            local Xplayer, YPlayer = PlayerPosition()
-                            local playerPos = vector2.new(Xplayer - CurrentFox.body:getX(), YPlayer - CurrentFox.body:getY())
-                            local playerMag = vector2.magnitude(playerPos)
-
-                            --making the fox jump to the player if in reach or with a precise trajectory
-                            if playerMag > 10*64 then
-                            -- if player is outside of reach
-
-                            --fox pounces right
-                            if Xplayer >= CurrentFox.body:getX() then
-                                CurrentFox.body:applyLinearImpulse(outsideReachX, outsideReachY)
-                                CurrentFox.readyAnimTrig = false
-
-                            else --fox pounces left
-                                CurrentFox.body:applyLinearImpulse(-outsideReachX, -outsideReachY)
-                                CurrentFox.readyAnimTrig = false
-
-                            end
-
-                        else -- if player is in reach
-
-                            -- fox puonces right
-                            if Xplayer >= CurrentFox.body:getX() then
-                                CurrentFox.body:applyLinearImpulse(inReachX, -inReachY)
-                                CurrentFox.Readytimer = 2.33
-                                CurrentFox.attackTimer = 1
-                            else-- fox puonces left
-                                CurrentFox.body:applyLinearImpulse(-inReachX, -inReachY)
-                                CurrentFox.Readytimer = 2.33
-                                CurrentFox.attackTimer = 1
-                            end
-
-                            
-                        end
-
-                        end
+                    --fox pounces right
+                    if Xplayer >= CurrentFox.body:getX() then
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(outsideReachX, outsideReachY)
+                        CurrentFox.attackTimer = 1
+                    else --fox pounces left
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(-outsideReachX, -outsideReachY)
+                        CurrentFox.attackTimer = 1
                     end
+                    
+
+                    return
+
+                
+                else
+                    if Xplayer >= CurrentFox.body:getX() then  -- fox puonces right
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(inReachX, -inReachY)
+                        CurrentFox.attackTimer = 1
+                    else-- fox puonces left
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(-inReachX, -inReachY)
+                        CurrentFox.attackTimer = 1
+                        
+                    end
+                    
+                
+
+                    return
                 end
             end
-            FoxAnimation(dt)
+
+            if CurrentFox.Readytimer > 0 then
+                print("Decreasing readyTimer!");
+                CurrentFox.Readytimer = CurrentFox.Readytimer - dt
+                CurrentFox.readyAnimTrig = true
+            
+                return
+            else if CurrentFox.attackTimer > 0 then
+                print("Decreasing attackTimer!");
+                CurrentFox.attackTimer = CurrentFox.attackTimer - dt
+                if CurrentFox.attackTimer <= 0 then
+                    CurrentFox.Readytimer = 1
+                end
+            end
+
         end
+        FoxAnimation(dt) 
+
     end
+        
+        
+    end
+end
 
 function FoxDetectionZone(world)
 
@@ -282,7 +284,7 @@ function DrawEnemy()
 end
 
 
-function BirdMovementTiled(birb, playerposition)
+function BirdMovementTiled(birb, playerposition, dt)
     if birb.body:isDestroyed() == false then
         birb.direction = vector2.new(math.cos(birb.body:getAngle()), math.sin(birb.body:getAngle()))
 
@@ -291,6 +293,7 @@ function BirdMovementTiled(birb, playerposition)
         if birb.active then  
 
             if birb.chasing then
+            
                 local playerdirection = vector2.normalize(vector2.sub(playerposition, vector2.new(birb.body:getPosition())))
                 local engineForce = vector2.mult(playerdirection,1800)
                 birb.body:applyForce(engineForce.x, engineForce.y)
@@ -367,21 +370,7 @@ function FoxAnimation(dt)
     for i = 1, #foxes do
 
         currentFox = foxes[i]
-        if Xplayer < currentFox.body:getX() then
 
-             --animations when preparing attack
-            
-             if currentFox.readyAnimTrig == true then
-                print("yes")
-            currentFox.animTimer = currentFox.animTimer + dt -- increases the time with dt
-            if currentFox.animTimer > 0.4 then -- when time gets to 0.1
-                currentFox.animFrame = currentFox.animFrame + 1 -- increases the anim. index
-                    if currentFox.animFrame <  2 or currentFox.animFrame > 4 then
-                        currentFox.animFrame = 3
-                    end -- animation loop
-                currentFox.animTimer = 0
-            end
-        end
 
 
             --animations when idle
@@ -398,10 +387,26 @@ function FoxAnimation(dt)
                 end
             end
 
+            if Xplayer < currentFox.body:getX() then
+
+                --animations when preparing attack
+               
+                if currentFox.readyAnimTrig == true then
+
+               currentFox.animTimer = currentFox.animTimer + dt -- increases the time with dt
+               if currentFox.animTimer > 0.1 then -- when time gets to 0.1
+                   currentFox.animFrame = currentFox.animFrame + 1 -- increases the anim. index
+                       if currentFox.animFrame <  2 or currentFox.animFrame > 4 then
+                           currentFox.animFrame = 3
+                       end -- animation loop
+                   currentFox.animTimer = 0
+               end
+           end
+
             --animations when midair
 
             if currentFox.pounceAnimTrig == true then 
-                print("maybe")
+
             currentFox.animTimer = currentFox.animTimer + dt -- increases the time with dt
                 if currentFox.animTimer > 0.1 then -- when time gets to 0.1
                     currentFox.animFrame = currentFox.animFrame + 1 -- increases the anim. index
@@ -416,18 +421,7 @@ function FoxAnimation(dt)
 
         if Xplayer >= currentFox.body:getX() then
 
-             --animations when preparing attack
 
-             if currentFox.readyAnimTrig == true then 
-
-                currentFox.animTimer = currentFox.animTimer + dt -- increases the time with dt
-                if currentFox.animTimer > 0.4 then -- when time gets to 0.1
-                currentFox.animFrame = currentFox.animFrame + 1 -- increases the anim. index
-                    if currentFox.animFrame < 8 or currentFox.animFrame > 10 then
-                        currentFox.animFrame = 9
-                    end -- animation loop
-                    currentFox.animTimer = 0
-                end
 
             --animations when idle
 
@@ -436,21 +430,32 @@ function FoxAnimation(dt)
                 currentFox.animTimer = currentFox.animTimer + dt -- increases the time with dt
                 if currentFox.animTimer > 0.4 then -- when time gets to 0.1
                 currentFox.animFrame = currentFox.animFrame + 1 -- increases the anim. index
-                    if currentFox.animFrame < 6 or currentFox.animFrame > 8 then
+                    if currentFox.animFrame < 7 or currentFox.animFrame > 8 then
                         currentFox.animFrame = 7
                     end -- animation loop
                     currentFox.animTimer = 0
                 end
             end
-            
-           
 
+            --animations when preparing attack
+
+             if currentFox.readyAnimTrig == true then 
+
+                currentFox.animTimer = currentFox.animTimer + dt -- increases the time with dt
+                if currentFox.animTimer > 0.1 then -- when time gets to 0.1
+                currentFox.animFrame = currentFox.animFrame + 1 -- increases the anim. index
+                    if currentFox.animFrame < 8 or currentFox.animFrame > 10 then
+                        currentFox.animFrame = 9
+                    end -- animation loop
+                    currentFox.animTimer = 0
+                end
+        
                 --animations when midair
 
             if currentFox.pounceAnimTrig == true then 
 
                 currentFox.animTimer = currentFox.animTimer + dt -- increases the time with dt
-                if currentFox.animTimer > 0.4 then -- when time gets to 0.1
+                if currentFox.animTimer > 0.1 then -- when time gets to 0.1
                 currentFox.animFrame = currentFox.animFrame + 1 -- increases the anim. index
                     if currentFox.animFrame < 10 or currentFox.animFrame > 12 then
                         currentFox.animFrame = 11

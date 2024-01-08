@@ -39,7 +39,7 @@ local WinZone
 --
 
 --love.window.setMode( 1920, 1080)
-love.window.setFullscreen(false)
+love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
@@ -313,6 +313,8 @@ function love.load()
                     for j = 1, 16 do
                         bird.flyAnim[j] = love.graphics.newImage("/animations/Flying_" .. j .. ".png")
                     end
+
+                
 
 
                 table.insert(birds, bird)

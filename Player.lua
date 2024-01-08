@@ -117,8 +117,8 @@ function LoadPlayerSounds()
     reloadSound = love.audio.newSource("/sounds/reloaddone.wav","static")
     ammoCollectSound = love.audio.newSource("/sounds/ammopickup.wav", "static")
     shootSound = love.audio.newSource("/sounds/explosion.wav", "static" )
-    killFoxSound = love.audio.newSource("/sounds/foxtrim.wav", "static")
-    killBirdSound = love.audio.newSource("/sounds/crow.wav", "static")
+    killFoxSound = love.audio.newSource("/sounds/foxkillsound.wav", "static")
+    killBirdSound = love.audio.newSource("/sounds/birdkillsound.wav", "static")
 
 end
 
@@ -635,10 +635,7 @@ function BeginContactPlayer(fixtureA, fixtureB)
         end
     end
 
-    if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "fox" then
-        fixtureB:getUserData().pounceAnimTrig= false
-    end
-    
+
 end
 
 function EndContactPlayer(fixtureA, fixtureB)
@@ -657,9 +654,7 @@ function EndContactPlayer(fixtureA, fixtureB)
 
     end
 
-    if fixtureA:getUserData().type == "terrain" and fixtureB:getUserData().name == "fox" then
-        fixtureB:getUserData().pounceAnimTrig= true
-    end
+
 
     if fixtureA:getUserData().name == "WinZone" and fixtureB:getUserData().name == "Player" then --or (fixtureA:getUserData().name == "ball" and fixtureB:getUserData().name == "Ammo")
         -- the way that the beign contact is strucutred, it wont allow player to press a button or be with zero velocity in order to win, Prob necessary another way to check
