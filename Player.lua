@@ -701,7 +701,7 @@ end
 function PlaceFlag()
     love.graphics.setColor(1,1,1)
     if CanThePlayerWin then
-       -- love.graphics.draw(WinPostion.img, WinPostion.body:getX()- WinPostion.img:getWidth()/2, WinPostion.body:getY() - WinPostion.img:getHeight()/2)
+       love.graphics.draw(WinPostion.img, WinPostion.body:getX()- WinPostion.img:getWidth()/2, WinPostion.body:getY() - WinPostion.img:getHeight()/2)
     end
 
     
