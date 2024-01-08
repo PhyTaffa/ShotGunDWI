@@ -419,19 +419,6 @@ function KeyPressedPlayer(key)
 end
 
 function KeyPressedPlyaer()
-    -- if love.keyboard.isDown("space") then
-    --     GravityChangin = not GravityChangin
-    -- end
-
-    -- if love.keyboard.isDown("z") then
-    --     print(ball.body:getPosition())
-    -- end
-    
-    -- if GravityChangin == false then
-    --     world:setGravity( 0, 150 * love.physics.getMeter() )
-    -- else
-    --     world:setGravity( 0, 0 )
-    -- end
 
     if love.keyboard.isDown("right") then
 

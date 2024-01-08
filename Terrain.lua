@@ -39,14 +39,10 @@ local textStranded = {"MAIN MENU", "QUIT"}
 local textWin = {"CREDITS"}
 local textGameMenu = {"RESUME", "MAIN MENU", "QUIT"}
 local textOption = {"BACK"}
-local textCredits ={"RRETURN TO MAIN MENU"}
+local textCredits ={"MAIN MENU "}
 
 
 local textMM = "Pebbles and amoguses"
-
-
-local fileName = "GameInfo.txt"
-local fileText = "true"
 
 local GameEnded = false
 -- sounds
@@ -69,7 +65,7 @@ function LoadMap(world)
 
     sw = love.graphics:getWidth()
     sh = love.graphics:getHeight()
-    w = sw/4
+    w = sw/3
     h = sh/12
 
 
@@ -240,7 +236,7 @@ function CheckMouseOverlappingGM(Mx, My, GameStateBoxes, CurrentText)
 
             --print("overlapping")
 
-            if love.mouse.isDown(1) and mouseTimer <= 0 and CurrentText[i] == "RRETURN TO MAIN MENU" then
+            if love.mouse.isDown(1) and mouseTimer <= 0 and CurrentText[i] == "MAIN MENU " then
                 --print("mouse working")
                 mouseTimer = 0.2
                 love.audio.play(menuSound)
@@ -292,16 +288,22 @@ function MainMenu()
     DrawMainMenu()
     CheckMouseOverlapping(Mx, My, BoxOptionsMM, textMainMenu)
 
+    local imgW = logo:getWidth()
+    local imgH = logo:getHeight()
+
+    local ratioW = sw/(imgW * 3)
+    local ratioH = sh/(imgH * 2.5)
+
     love.graphics.setColor(1,1,1)
     love.graphics.setFont(love.graphics.newFont(30))
 
-    love.graphics.draw(logo, sw/2- logo:getWidth() * 3, logo:getHeight(), 0, 3, 3)
+    love.graphics.draw(logo, sw/2 - imgW * 3/2, logo:getHeight(), 0, ratioW, ratioH)
 
     -- if GameEnded then
     --     love.graphics.setColor(1,0.4,1)
     -- end
 
-    love.graphics.print(textMM, sw/2 - 350, sh/2 - logo:getHeight() * 2, 0, 2, 2)
+    --love.graphics.print(textMM, sw/2 - 350, sh/2 - logo:getHeight() * 2, 0, 2, 2)
     -- else
     --     love.graphics.setColor(1,1,1)
     --     love.graphics.setFont(love.graphics.newFont(30))
@@ -582,11 +584,13 @@ function Credits()
         --Wfiling()
         --GameEnded = true
         --ChangeSaveInfo()
+        creditTimer = 3
     end
 
     love.graphics.setColor(1,1,1)
     
     print(creditTimer)
+    
     
 
 end
@@ -601,7 +605,7 @@ function DrawCredits()
         --love.graphics.rectangle("fill", CurrentBox.body:getX(), CurrentBox.body:getY(), w, h)
 
         love.graphics.setColor(1, 1, 1)
-        love.graphics.setFont(love.graphics.newFont(75))
+        love.graphics.setFont(love.graphics.newFont(60))
         love.graphics.printf(textCredits[i], CurrentBox.body:getX()- w/2, CurrentBox.body:getY() - h/2, w, "center")
         --love.graphics.print(textMainMenu[i], CurrentBox.body:getX() - w/10, CurrentBox.body:getY() - h/2)
     end
