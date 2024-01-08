@@ -35,7 +35,7 @@ local birds = {}
 --
 
 --love.window.setMode( 1920, 1080)
-love.window.setFullscreen(true)
+--love.window.setFullscreen(true)
 function love.load()
 
     love.physics.setMeter(64)
@@ -264,8 +264,29 @@ function love.load()
                 bird.y = obj.y
                 bird.range = 2
                 bird.viewangle = 0
+                bird.wayPoint1X = bird.x
+                bird.wayPoint1Y =bird.y
+                bird.wayPoint2X = bird.x + 300
+                bird.wayPoint2Y = bird.y
+
+
+
+                local px1 = bird.x
+                local py1 = bird.y
+                local px2 = px1 + 100
+                local py2 = py1
 
                 bird.uncovered = false
+                bird.currentPatrolPoint = 1
+                bird.patrolPoints = 
+                {
+                   {px1, py1 }, -- waypoint 1
+                   {px2 , py2}, -- waypoint 2
+                    
+                    
+                    
+                }
+
 
                 table.insert(birds, bird)
             end

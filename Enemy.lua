@@ -1,7 +1,9 @@
 require "vector2"
 require "Player"
+local switchedWayPoint = false
+local bird
+local bird2
 
-local bird, bird2
 local foxhurttriggerright, foxhurttriggerleft, birdhurttriggerleft, birdhurttriggerright, stalactitehurttriggerleft, stalactitehurttriggerright
 local stalactite,  stalactitetrigger
 local fox
@@ -112,7 +114,7 @@ function LoadEnemies(world, foxsTable, birdTable)
     bird2.range = 2
     bird2.killed = false
     bird2.distance = 0
-    
+    bird2.patrolPoints = 20
 
     bird2trigger = {
         x = 2200,  -- x-coordinate of the trigger area
@@ -425,6 +427,7 @@ function UpdateEnemies(dt, playerx, playery,ball, world)
    
     -- BirdCollision(ball, bird2trigger, bird2)
     -- BirdMovement(bird2, playerposition)
+
    
    
     FoxBehaviourTiled(dt) 
@@ -437,7 +440,62 @@ function UpdateEnemies(dt, playerx, playery,ball, world)
    --StalactiteCollision(ball, stalactitetrigger, stalactite)
    FallingStalactite(stalactite, dt)
 
+   
+
+   for i = 1, #birds do
+        --  local targetX = 0
+        --  local targetY = 0
+        local CurrentBird = birds[i]
+        if switchedWayPoint == false then 
+
+            --local target = vector2.new (CurrentBird.patrolPoints[CurrentBird.currentPatrolPoint],CurrentBird.patrolPoints[CurrentBird.currentPatrolPoint] )
+            target= vector2.new(CurrentBird.wayPoint1X,CurrentBird.wayPoint1Y)
+            print(target.x, target.y)
+            targetX = (target.x - 4) * 2
+            targetY = (target.y - 4) * 1
+            local dx = targetX - CurrentBird.x
+            local dy = targetY - CurrentBird.y
+            local distance = math.sqrt(dx^2 + dy^2)
+            CurrentBird.speed = 100
+            if  distance > 1 then
+                local angle = math.atan2(dy, dx)
+                CurrentBird.x = CurrentBird.x + math.cos(angle) * CurrentBird.speed * dt
+                CurrentBird.y = CurrentBird.y + math.sin(angle) * CurrentBird.speed * dt
+            else
+                
+                switchedWayPoint = true 
+            end
+        end
+
+        if switchedWayPoint == true then 
+
+            --local target = vector2.new (CurrentBird.patrolPoints[CurrentBird.currentPatrolPoint],CurrentBird.patrolPoints[CurrentBird.currentPatrolPoint] )
+            target= vector2.new(CurrentBird.wayPoint2X,CurrentBird.wayPoint2Y)
+            print(target.x, target.y)
+            targetX = (target.x - 4) * 2
+            targetY = (target.y - 4) * 1
+            local dx = targetX - CurrentBird.x
+            local dy = targetY - CurrentBird.y
+            local distance = math.sqrt(dx^2 + dy^2)
+            CurrentBird.speed = 100
+            if  distance > 1 then
+                local angle = math.atan2(dy, dx)
+                CurrentBird.x = CurrentBird.x + math.cos(angle) * CurrentBird.speed * dt
+                CurrentBird.y = CurrentBird.y + math.sin(angle) * CurrentBird.speed * dt
+            else
+                
+                switchedWayPoint = false 
+            end
+        end
+
+    end
+
+        
+            -- CurrentBird.currentPatrolPoint = CurrentBird.currentPatrolPoint % #CurrentBird.patrolPoints + 1
 end
+
+
+
 
 function FallingStalactite(stalactite,dt)
     if stalactite.body:isDestroyed() == false then
