@@ -7,12 +7,11 @@ local birds
 local stalactites
 local DetectionZones = {}
 
---enemy sounds and associated variables
 
+--enemy sounds and associated variables
 local foxSound
 local birdSound
-local birdSoundTimer = 0
-local stalactiteSound
+
 
 --Fox Forces
 local inReachX = 2600
@@ -21,9 +20,13 @@ local inReachY = 1800
 local outsideReachX = 1300
 local outsideReachY = 5000
 
+
 --cheats
 local DisplayTriggerZones = false
 
+
+
+-------------------------LOADING ENEMY FROM MAIN
 function LoadEnemies(world, foxsTable, birdTable, stalactitesTable)
     
     foxes = foxsTable
@@ -33,7 +36,7 @@ function LoadEnemies(world, foxsTable, birdTable, stalactitesTable)
     FoxDetectionZone(world)
     BirdDetectionZone(world)
     StalDetectionZone(world)
-
+-- stal img
     StalImg = love.graphics.newImage("Immages/stalactite.png")
 
 end
@@ -45,82 +48,10 @@ function LoadEnemySounds()
 
 end
 
-function FoxBehaviourTiled(dt)
 
-    for i = 1, #foxes do
-        local CurrentFox = foxes[i]
 
-        if CurrentFox.body:isDestroyed() == false and CurrentFox.uncovered == true then
-        
-            if CurrentFox.attackTimer <= 0 then
 
-                CurrentFox.readyAnimTrig = false
-                
-                print("Attack!")
-                local Xplayer, YPlayer = PlayerPosition()
-                local playerPos = vector2.new(Xplayer - CurrentFox.body:getX(), YPlayer - CurrentFox.body:getY())
-                local playerMag = vector2.magnitude(playerPos)
-
-                --making the fox jump to the player if in reach or with a precise trajectory
-                if playerMag > 10*64 then
-                    -- if player is outside of reach
-
-                    --fox pounces right
-                    if Xplayer >= CurrentFox.body:getX() then
-                        love.audio.play(foxSound)
-                        CurrentFox.body:applyLinearImpulse(outsideReachX, outsideReachY)
-                        CurrentFox.attackTimer = 1
-                    else --fox pounces left
-                        love.audio.play(foxSound)
-                        CurrentFox.body:applyLinearImpulse(-outsideReachX, -outsideReachY)
-                        CurrentFox.attackTimer = 1
-                    end
-                    
-
-                    return
-
-                
-                else
-                    if Xplayer >= CurrentFox.body:getX() then  -- fox puonces right
-                        love.audio.play(foxSound)
-                        CurrentFox.body:applyLinearImpulse(inReachX, -inReachY)
-                        CurrentFox.attackTimer = 1
-                    else-- fox puonces left
-                        love.audio.play(foxSound)
-                        CurrentFox.body:applyLinearImpulse(-inReachX, -inReachY)
-                        CurrentFox.attackTimer = 1
-                        
-                    end
-                    
-                
-
-                    return
-                end
-            end
-
-            if CurrentFox.Readytimer > 0 then
-                print("Decreasing readyTimer!");
-                CurrentFox.Readytimer = CurrentFox.Readytimer - dt
-                CurrentFox.readyAnimTrig = true
-            
-                return
-            else if CurrentFox.attackTimer > 0 then
-                print("Decreasing attackTimer!");
-                CurrentFox.attackTimer = CurrentFox.attackTimer - dt
-                if CurrentFox.attackTimer <= 0 then
-                    CurrentFox.Readytimer = 1
-                end
-            end
-
-        end
-        FoxAnimation(dt) 
-
-    end
-        
-        
-    end
-end
-
+--------------------------CREATION OF THE VARIOUS DETECTION ZONES FOR EVERY ENEMY-----------------------
 function FoxDetectionZone(world)
 
     for i = 1, #foxes do
@@ -219,31 +150,17 @@ function CreateDetectionZoneStal(x, y, w, h, world, CurrentEnemy)
 
 end
 
-function FoxUncovering(fox)
-    fox.uncovered = true
-end
 
-function BirdActivating(bird)
-    bird.active = true
-end
 
-function BirdDeactivating(bird)
-    bird.active = false
-end
 
-function CanStalFall(Stal)
-    if Stal.body:isDestroyed() == false then
-        Stal.Falling = true
-    end
-end
 
-function KeyPressedEnemy()
 
-    if love.keyboard.isDown("m") then
-        DisplayTriggerZones = true
-    end
-end
 
+
+
+
+
+---------------------------- ENEMY UPDATE-----------------------------------
 function UpdateEnemies(dt, playerx, playery,ball, world)
     local playerposition = vector2.new(playerx,playery)
 
@@ -262,6 +179,106 @@ function UpdateEnemies(dt, playerx, playery,ball, world)
 
 end
 
+
+
+
+
+
+
+
+-----------------------------FOX BEHAVIOUR AND IT'S TRIGGER ACTIVATION
+function FoxBehaviourTiled(dt)
+
+    for i = 1, #foxes do
+        local CurrentFox = foxes[i]
+
+        if CurrentFox.body:isDestroyed() == false and CurrentFox.uncovered == true then
+        
+            if CurrentFox.attackTimer <= 0 then
+
+                CurrentFox.readyAnimTrig = false
+                
+                print("Attack!")
+                local Xplayer, YPlayer = PlayerPosition()
+                local playerPos = vector2.new(Xplayer - CurrentFox.body:getX(), YPlayer - CurrentFox.body:getY())
+                local playerMag = vector2.magnitude(playerPos)
+
+                --making the fox jump to the player if in reach or with a precise trajectory
+                if playerMag > 10*64 then
+                    -- if player is outside of reach
+
+                    --fox pounces right
+                    if Xplayer >= CurrentFox.body:getX() then
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(outsideReachX, outsideReachY)
+                        CurrentFox.attackTimer = 1
+                    else --fox pounces left
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(-outsideReachX, -outsideReachY)
+                        CurrentFox.attackTimer = 1
+                    end
+                    
+
+                    return
+
+                
+                else
+                    if Xplayer >= CurrentFox.body:getX() then  -- fox puonces right
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(inReachX, -inReachY)
+                        CurrentFox.attackTimer = 1
+                    else-- fox puonces left
+                        love.audio.play(foxSound)
+                        CurrentFox.body:applyLinearImpulse(-inReachX, -inReachY)
+                        CurrentFox.attackTimer = 1
+                        
+                    end
+                    
+                
+
+                    return
+                end
+            end
+
+            if CurrentFox.Readytimer > 0 then
+                print("Decreasing readyTimer!");
+                CurrentFox.Readytimer = CurrentFox.Readytimer - dt
+                CurrentFox.readyAnimTrig = true
+            
+                return
+            else if CurrentFox.attackTimer > 0 then
+                print("Decreasing attackTimer!");
+                CurrentFox.attackTimer = CurrentFox.attackTimer - dt
+                if CurrentFox.attackTimer <= 0 then
+                    CurrentFox.Readytimer = 1
+                end
+            end
+
+        end
+        FoxAnimation(dt) 
+
+    end
+        
+        
+    end
+end
+
+function FoxUncovering(fox)
+    fox.uncovered = true
+end
+
+
+
+
+
+
+-----------------------------STALACTITE
+function CanStalFall(Stal)
+    if Stal.body:isDestroyed() == false then
+        Stal.Falling = true
+    end
+end
+
 function FallingStalactite(Stal, dt)
     for i = 1, #stalactites do
 
@@ -276,90 +293,12 @@ function FallingStalactite(Stal, dt)
 end
 
 
-function CanSee(pl, pllookdir, p2, viewangle)
-    local direction = vector2.normalize(vector2.sub(p2, pl))
-    local angle = math.acos (vector2.dot(pllookdir, direction))
-    if (math.deg(angle) > viewangle) then
-        return true
-    end
-    return false
-end
-
-function DrawEnemy()
-    
-    --TIled
-
-    -- Foxes
-
-    -- love.graphics.setColor(1, 0.5,0)
-    -- for i = 1, #foxes do
-
-    --     local CurrentFox = foxes[i]
-    --     if CurrentFox.body:isDestroyed() == false and CurrentFox.uncovered == true then
-    --         love.graphics.polygon("fill", CurrentFox.body:getWorldPoints(CurrentFox.shape:getPoints()))
-    --     end
-    -- end
-
-    love.graphics.setColor(1,1,1)
-    for i = 1, #foxes do
-
-        local currentFox = foxes[i]
-        if currentFox.body:isDestroyed() == false then
-            x, y = currentFox.body:getWorldPoints(currentFox.shape:getPoints())
-            love.graphics.draw(currentFox.anim[currentFox.animFrame], x, y)
-        end
-    end
-
-    -- Birds
-    -- love.graphics.setColor(0.2, 0.2, 0.2)
-    -- for i = 1, #birds do
-
-    --     local CurrentBird = birds[i]
-    --     if CurrentBird.body:isDestroyed() == false then
-    --         love.graphics.polygon("fill", CurrentBird.body:getWorldPoints(CurrentBird.shape:getPoints()))
-    --     end
-    -- end
-    love.graphics.setColor(1,1,1)
-    for i = 1, #birds do
-
-        local CurrentBird = birds[i]
-        if CurrentBird.body:isDestroyed() == false then
-            x, y = CurrentBird.body:getWorldPoints(CurrentBird.shape:getPoints())
-            love.graphics.draw(CurrentBird.flyAnim[CurrentBird.animFrame], x, y)
-        end
-    end
-
-    -- STALACTITE
-    love.graphics.setColor(0, 1, 1)
-    for i = 1, #stalactites do
-
-        local CurrentStal = stalactites[i]
-        if CurrentStal.body:isDestroyed() == false then
-            love.graphics.draw(StalImg, CurrentStal.body:getX()-32, CurrentStal.body:getY()-64)
-            --love.graphics.polygon("fill", CurrentStal.body:getWorldPoints(CurrentStal.shape:getPoints()))
-        end
-    end
-
-    DrawEnemyTriggerZone()
-    
-end
 
 
-function DrawEnemyTriggerZone()
-    if DisplayTriggerZones then
-        --Detection zones
-        love.graphics.setColor(1,0,0)
-        for i = 1, #DetectionZones do
-    
-            local CurrentDetectionZone = DetectionZones[i]
 
-                love.graphics.rectangle("line", CurrentDetectionZone.x - CurrentDetectionZone.w/2 , CurrentDetectionZone.y - CurrentDetectionZone.h/2, CurrentDetectionZone.w, CurrentDetectionZone.h)
-        end
-    end
 
-    DisplayTriggerZones = false
 
-end
+-----------------------------------------BIRD MOVEMENT
 
 
 function BirdMovementTiled(birb, playerposition, dt)
@@ -404,14 +343,31 @@ function BirdMovementTiled(birb, playerposition, dt)
     end
 end
 
--- function StalactiteCollision(player, StalactiteTriggerZone, stalactite)
---     if stalactite.body:isDestroyed() == false then 
---         if  CheckCollision(player, StalactiteTriggerZone) then
+function CanSee(pl, pllookdir, p2, viewangle)
+    local direction = vector2.normalize(vector2.sub(p2, pl))
+    local angle = math.acos (vector2.dot(pllookdir, direction))
+    if (math.deg(angle) > viewangle) then
+        return true
+    end
+    return false
+end
 
---             stalactite.canFall = true
---         end
---     end
--- end
+function BirdActivating(bird)
+    bird.active = true
+end
+
+function BirdDeactivating(bird)
+    bird.active = false
+end
+
+
+
+
+
+
+
+
+-------------ANIMATION
 
 function BirdAnimation(dt)
     local Xplayer, YPlayer = PlayerPosition()
@@ -455,6 +411,7 @@ function FoxAnimation(dt)
 
         currentFox = foxes[i]
 
+        if currentFox.body:isDestroyed() == false then
 
 
             --animations when idle
@@ -550,5 +507,84 @@ function FoxAnimation(dt)
             end
         end
     end
+    end
 end
 end
+
+
+
+
+
+
+
+----------------------KEYBOARD PRESSES
+function KeyPressedEnemy()
+
+    if love.keyboard.isDown("m") then
+        DisplayTriggerZones = true
+    end
+end
+
+
+
+-------------------------------DRAWING
+function DrawEnemy()
+    
+    --TIled
+
+    -- Foxes
+    love.graphics.setColor(1,1,1)
+    for i = 1, #foxes do
+
+        local currentFox = foxes[i]
+        if currentFox.body:isDestroyed() == false then
+            x, y = currentFox.body:getWorldPoints(currentFox.shape:getPoints())
+            love.graphics.draw(currentFox.anim[currentFox.animFrame], x, y)
+        end
+    end
+
+    -- Birds
+    love.graphics.setColor(1,1,1)
+    for i = 1, #birds do
+
+        local CurrentBird = birds[i]
+        if CurrentBird.body:isDestroyed() == false then
+            x, y = CurrentBird.body:getWorldPoints(CurrentBird.shape:getPoints())
+            love.graphics.draw(CurrentBird.flyAnim[CurrentBird.animFrame], x, y)
+        end
+    end
+
+    -- STALACTITE
+    love.graphics.setColor(0, 1, 1)
+    for i = 1, #stalactites do
+
+        local CurrentStal = stalactites[i]
+        if CurrentStal.body:isDestroyed() == false then
+            love.graphics.draw(StalImg, CurrentStal.body:getX()-32, CurrentStal.body:getY()-64)
+            --love.graphics.polygon("fill", CurrentStal.body:getWorldPoints(CurrentStal.shape:getPoints()))
+        end
+    end
+
+    DrawEnemyTriggerZone()
+    
+end
+
+
+function DrawEnemyTriggerZone()
+    if DisplayTriggerZones then
+        --Detection zones
+        love.graphics.setColor(1,0,0)
+        for i = 1, #DetectionZones do
+    
+            local CurrentDetectionZone = DetectionZones[i]
+
+                love.graphics.rectangle("line", CurrentDetectionZone.x - CurrentDetectionZone.w/2 , CurrentDetectionZone.y - CurrentDetectionZone.h/2, CurrentDetectionZone.w, CurrentDetectionZone.h)
+        end
+    end
+
+    DisplayTriggerZones = false
+
+end
+
+
+

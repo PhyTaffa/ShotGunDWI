@@ -6,7 +6,7 @@ local ShootingTimer = 0.5
 local radius = 40
 local Stranded = false
 local CanThePlayerWin = false
-local ammo = 35
+local ammo = 30
 local DisplayShootingZone = false
 
 --Enemy pusheback force
@@ -55,12 +55,14 @@ local rays
 local targetToFollowX, targetToFollowY
 
 
+
+
+----------LOADING VARIOUS ELEMENTS
 function LoadPlayer(world)
 
-    ball= {}
+    ball = {}
     ball.body = love.physics.newBody(world, 1000, 7542, "dynamic")
-    --ball.shape = love.physics.newRectangleShape(21, 32)
-    ball.shape= love.physics.newCircleShape(radius)
+    ball.shape = love.physics.newCircleShape(radius)
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0) -- 1 os the density which if it's diverse than zero will impact the mass accordingly to the given shape nad it's size
     ball.body:setMass(1)
     ball.body:setFixedRotation(true)
@@ -108,6 +110,9 @@ function LoadPlayerSounds()
 
 end
 
+
+
+------------------------ PLAYER MOVEMENT
 function UsingCameraCoordinate()
     -- Mouse - Plyaer usign camera coordinates
 
@@ -140,19 +145,6 @@ function displayTable(table)
     print("\n")
 end
 
--- function DistancePlayerObj(list)
---     local playerX = list[1].x
---     local playerY = list[1].x
---     local playerT = list[1].fixture
-
---     for _, fixture in ipairs(list) do
---         print("Name:", fixture.fixture)
---         print("X Coordinate:", list.x)
---         print("Y Coordinate:", list.y)
---         print("----")
---     end
-
--- end
 
 function UpdatePlayer(dt, camera, world)
     -- Binds the camera to the player position
@@ -345,7 +337,7 @@ function MoveCamera(CameraDisplacmentX, CameraDisplacmentY)
     return targetX, targetY
 end
 
-
+------------------------- RAY CASTING------------------------------
 function WorldRayCastCallback(fixture, x, y, xn, yn, fraction)
 
     local hit = {}
@@ -405,27 +397,10 @@ function SearchValue(mainTable)
         end
     end
 
-    -- for _, value in ipairs(mainTable) do
-    --     if value.type == "enemy" then
-    --         KillEnemy(i)-- Return the name or the entire subtable depending on your needs
-    --     end
-    -- end
 end
 
 
--- function printTable(table, indent)
---     indent = indent or 0
-
---     for key, value in pairs(table) do
---         if type(value) == "table" then
---             print(string.rep("  ", indent) .. key .. ":")
---             printTable(value, indent + 1)
---         else
---             print(string.rep("  ", indent) .. key .. ": " .. tostring(value))
---         end
---     end
--- end
-
+-------------------------------------------------KEYBOARD PRESSES ONCE OR MULTIPLE TIMES
 function KeyPressedPlayer(key)
     if key == "space" then
         GravityChangin = not GravityChangin
@@ -436,8 +411,8 @@ function KeyPressedPlayer(key)
     end
 
     if key == "e" and ball.body:getLinearVelocity() == 0 and CanThePlayerWin == true then
-        --ChangeGameState(STATE_WON)
         CanThePlayerWin = true
+        ChangeGameState(STATE_WON)
     end
 end
 
@@ -469,29 +444,18 @@ function KeyPressedPlyaer()
 
     if love.keyboard.isDown("q") then
         DisplayShootingZoneCheat = true
-        --DrawShootingZoneCheat()
+
     end
 
-    -- if love.keyboard.isDown("s") and knockbacktoggletimer <=0 and knockbacktoggle == false then
-
-    --     knockbacktoggle = true
-    --     knockbacknegx = 0
-    --     knockbackposx = 0
-    --     knockbacky = 0
-    --     knockbacktoggletimer = 1
-    -- elseif love.keyboard.isDown("s") and knockbacktoggle==true and knockbacktoggletimer <=0 then
-
-    --         knockbacktoggle = false
-    --         knockbacknegx = -1200
-    --         knockbackposx = 1200
-    --         knockbacky = -2800
-    --         knockbacktoggletimer = 1
-    -- end
 
 end
 
 
 
+
+
+
+-----------------DRAWINGS
 function RotateDisplayShootingZone(mode, x, y, width, height, angle)
 	-- We cannot rotate the rectangle directly, but we
 	-- can move and rotate the coordinate system.
@@ -556,6 +520,41 @@ function DrawCursor()
     end
 end
 
+function DrawAmmoBox()
+    for i = 1, #AmmoBoxes do
+
+        local CurrentAmmoBox = AmmoBoxes[i]
+
+        if CurrentAmmoBox.body:isDestroyed() == false then
+            love.graphics.setColor(1,1,1)
+            love.graphics.draw(AmmoBoxImg, CurrentAmmoBox.body:getX()-32, CurrentAmmoBox.body:getY()-32)
+        end
+    end
+end
+
+function DrawUI()
+    local PlayerX, PlayerY = PlayerPosition()
+
+    -- get screen width/height
+    local sw = love.graphics:getWidth()
+    local sh = love.graphics:getHeight()
+    local uiX = ammoCounterUI:getWidth()
+    local uiY = ammoCounterUI:getHeight()
+    
+    love.graphics.setColor(1,1,1)
+    -- set font
+    love.graphics.setFont(love.graphics.newFont(75))
+    love.graphics.draw(ammoCounterUI, sw - uiX * 2, sh - uiY * 2, 0, 2, 2)
+    if ammo >= 10 then 
+        love.graphics.print(ammo, sw - uiX- 20, sh - uiY- 40, 0, 1, 1)
+    else
+        love.graphics.print("0 " .. ammo, sw - uiX - 30, sh - uiY- 40, 0, 1, 1)
+    end
+end
+
+
+
+-----------------------STATE CHEKING ---------------------
 function UpdateGameStatus()
     if ammo <= 0 and Stranded == true then
         GameOver = true
@@ -563,6 +562,18 @@ function UpdateGameStatus()
 
     return Stranded
 end
+
+
+function UpdateWinCondition()
+    return STATE_WON
+end
+
+
+
+
+
+---------------------------- COLLISION DETECTION -----------------------------
+------------------------- EVERYTHING HAS BEEN DONE HERE
 
 function BeginContactPlayer(fixtureA, fixtureB)
 
@@ -656,11 +667,9 @@ function EndContactPlayer(fixtureA, fixtureB)
     end
 end
 
-function UpdateWinCondition()
-    return STATE_WON
-end
 
 
+--------------------FUNCTION OF COLLISIONS/ RAYCASTING--------------
 function KillEnemy(enemy)
     if enemy.name == "fox" then
         love.audio.play(killFoxSound)
@@ -689,54 +698,10 @@ function AmmoColleciton(fixtureA)
 end
 
 
-function DrawAmmoBox()
-    for i = 1, #AmmoBoxes do
-
-        local CurrentAmmoBox = AmmoBoxes[i]
-
-        if CurrentAmmoBox.body:isDestroyed() == false then
-            love.graphics.setColor(1,1,1)
-            love.graphics.draw(AmmoBoxImg, CurrentAmmoBox.body:getX()-32, CurrentAmmoBox.body:getY()-32)
-        end
-    end
-end
-
-
-function AmmoCollectionFeedBack(ammoBox)
-
-    love.graphics.setFont(love.graphics.newFont(80))
-    love.graphics.print("+10", ammoBox.body:getX(), ammoBox.body:getY())
-    --print("+10")
-
-end
-
-function DrawUI()
-    local PlayerX, PlayerY = PlayerPosition()
-
-    -- get screen width/height
-    local sw = love.graphics:getWidth()
-    local sh = love.graphics:getHeight()
-    local uiX = ammoCounterUI:getWidth()
-    local uiY = ammoCounterUI:getHeight()
-    
-    love.graphics.setColor(1,1,1)
-    -- set font
-    love.graphics.setFont(love.graphics.newFont(75))
-    love.graphics.draw(ammoCounterUI, sw - uiX * 2, sh - uiY * 2, 0, 2, 2)
-    if ammo >= 10 then 
-        love.graphics.print(ammo, sw - uiX- 20, sh - uiY- 40, 0, 1, 1)
-    else
-        love.graphics.print("0 " .. ammo, sw - uiX - 30, sh - uiY- 40, 0, 1, 1)
-    end
-end
--- function love.mousepressed(x, y, button, istouch)
---     print("mouse pressed at: " .. x .. ", " .. y)
--- end
-
 function PlaceFlag()
     love.graphics.setColor(1,1,1)
     if CanThePlayerWin then
-        love.graphics.draw(WinPostion.img, WinPostion.body:getX()- WinPostion.img:getWidth()/2, WinPostion.body:getY() - WinPostion.img:getHeight()/2)
+       -- love.graphics.draw(WinPostion.img, WinPostion.body:getX()- WinPostion.img:getWidth()/2, WinPostion.body:getY() - WinPostion.img:getHeight()/2)
     end
 
     

@@ -1,7 +1,7 @@
 require "vector2"
 camera = require "Camera"
 require "Player"
-require "Terrain"
+require "Menus"
 require "Enemy"
 require "GameState"
 
@@ -30,24 +30,27 @@ local rockPlatforms = {}
 local icePlatforms = {}
 local GroundObjs = {}
 local AmmoBoxs = {}
-local AmmoBoxImg
 local foxes = {}
 local birds = {}
 local stals = {}
 
 local WinZone
 
---
 
-love.window.setMode( 1920, 1080)
+
 love.window.setFullscreen(true)
+
 function love.load()
 
+    --LOADING THE NECESSARY STUFF
     love.physics.setMeter(64)
     world = love.physics.newWorld(0, 70 * love.physics.getMeter(), true)
 
+    -- COLLISIONS 
     world:setCallbacks(BeginContact, EndContact, nil, nil)
 
+
+    --CAMERA IMPLEMENTATION
     camera = camera()
     camera:setFollowLerp(0.2)
     camera:setFollowLead(10)
@@ -55,33 +58,35 @@ function love.load()
     camera:setBounds(0, 0, 3840, 7680)-- x,y topleft position then the Width and heigth(downwards) of the rectangle
     
 
+    --MOUSE
     love.mouse.setVisible(true)
     love.mouse.setGrabbed(true)
-    love.keyboard.setKeyRepeat(false)
   
   
 
+    -- LOADING THE PLAYER
     ball = LoadPlayer(world)
 
 
-    LoadMap(world)
+    --LOADING THE MENUS
+    LoadMenuEssentials(world)
     LoadMainMenu(world)
     LoadStrandedMenu(world)
     LoadWinMenu(world)
     LoadGameMenu(world)
     LoadOptionMenu(world)
     LoadCredits(world)
-    --LoadAmmoBox(world)
 
-    -- tiled stuff to be moved, possibly idk if necessary to be kept on main
+
+    -- TILED IMPLEMENTATION
     map = sti("map/draft.lua", {"box2d"})
 	map:box2d_init(world)
     map:addCustomLayer("Sprite Layer", 3)
 
-	--physics objs association
+    --HUGE PHYSICS IMPLEMENTATION FROM TILED
 
 
-
+    --World BOUNDARIES
     if map.layers['Boundries'] then
 
         for i, obj in pairs(map.layers['Boundries'].objects) do
@@ -102,6 +107,8 @@ function love.load()
         --return Boundries, wall
     end
 
+
+    -- GROUND
     if map.layers['GroundObj'] then
 
         for i, obj in pairs(map.layers['GroundObj'].objects) do
@@ -124,6 +131,8 @@ function love.load()
         end
     end
 
+
+    --GRASS PLATFORMS
     if map.layers['grassPlatform'] then
 
         for i, obj in pairs(map.layers['grassPlatform'].objects) do
@@ -146,6 +155,7 @@ function love.load()
         end
     end
 
+    --ROCK PLATFORMS
     if map.layers['rockPlatform'] then
 
         for i, obj in pairs(map.layers['rockPlatform'].objects) do
@@ -212,10 +222,9 @@ function love.load()
         end
     end
 
+
+
     --Ammonitions
-
-    --AmmoBoxImg = love.graphics.newImage("Immages/AmmoBoxImg.png")
-
     if map.layers['AmmoBoxObj'] then
 
         for i, obj in pairs(map.layers['AmmoBoxObj'].objects) do
@@ -237,12 +246,12 @@ function love.load()
 
                 table.insert(AmmoBoxs, AmmoBox)
             end
-
         end
-        --return Boundries, wall
     end
 
     LoadAmmoBox(AmmoBoxs, WinZone)
+
+
 
     -- Enemies:
     --         FOX
@@ -283,7 +292,7 @@ function love.load()
         end
     end
 
-    -- BIRD
+--              BIRD
     if map.layers['BirdObj'] then
 
         for i, obj in pairs(map.layers['BirdObj'].objects) do
@@ -331,7 +340,7 @@ function love.load()
         end
     end
 
-    --STALACTITE
+    --          STALACTITE
 
     if map.layers['StalactiteObj'] then
 
@@ -361,15 +370,18 @@ function love.load()
         end
     end
 
+
+
+    -- LOADING EVERYTHING
     LoadEnemies(world, foxes, birds, stals)
     LoadPlayerSounds()
     LoadEnemySounds()
 
-    --LoadSaveInfo()
-
 end
 
 
+
+-- COLLISIONS
 function BeginContact(fixtureA,fixtureB)
     BeginContactPlayer(fixtureA, fixtureB)
 end
@@ -381,6 +393,20 @@ end
 
 
 
+-- KEYBOARD
+function love.keypressed(key, scancode, isrepeat)
+
+    --print("hi")
+    KeyPressedGS(key)
+    KeyPressedM(key, CurrentState)
+    KeyPressedPlayer(key)
+
+    if key == "v" then
+        -- kinda wierd way to restart the program, it works
+        love.event.quit("restart")
+    end
+
+end
 
 
 
@@ -405,30 +431,16 @@ function love.update(dt)
     if CurrentState == STATE_QUIT then --winning
         love.event.quit()
     end
-
-
-
-end
-
-function love.keypressed(key, scancode, isrepeat)
-
-    --print("hi")
-    KeyPressedGS(key)
-    KeyPressedM(key, CurrentState)
-    KeyPressedPlayer(key)
-
-    if key == "v" then
-        -- kinda wierd way to restart the program, it works
-        love.event.quit("restart")
-    end
-
 end
 
 
+
+--------DRAWS
 function love.draw()
 
     if CurrentState == STATE_IN_GAME then
 
+        love.mouse.setVisible(false)
         camera:attach() 
 
         love.graphics.setColor(1,1,1)
@@ -492,9 +504,8 @@ function love.draw()
         camera:detach()    
         
         DrawUI()
-        --DrawCursor()
 
-
+        --STRANDED MENU
         GamingOver()
 
     end
@@ -503,7 +514,6 @@ function love.draw()
         love.mouse.setVisible(true)
 
         Winning()
-        --DrawCursor()
     end
 
     if CurrentState == STATE_MAIN_MENU then --winning
@@ -580,36 +590,8 @@ function love.draw()
 
     if CurrentState == STATE_OPTIONS then
         love.mouse.setVisible(true)
-        -- camera:attach() 
-
-        -- love.graphics.setColor(1,0,1)
-        
-        -- map:drawLayer(map.layers["background"])
-        -- map:drawLayer(map.layers["Ground"])
-        
-        -- map:drawLayer(map.layers["florathree"])
-        -- map:drawLayer(map.layers["floratwo"])
-        -- map:drawLayer(map.layers["flora"])
-        
-        -- map:drawLayer(map.layers["foxbush"])
-        -- map:drawLayer(map.layers["car"])
-        -- map:drawLayer(map.layers["platforms"])
-
-        
-        -- DrawEnemy()
-        -- DrawAmmoBox()
-        -- DrawPlayer()
-        -- DrawTrajectory()
-        -- DrawShootingZone()
-
-        -- camera:detach()    
-        
-        -- DrawUI()
+       
         Option()
-        --DrawCursor()
-
-
-        --GamingOver()
 
     end
     
