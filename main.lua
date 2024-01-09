@@ -284,7 +284,7 @@ function love.load()
                 fox.pounceAnimTrig= false
             
                     for j = 1, 12 do
-                        fox.anim[j] = love.graphics.newImage("/animations/fox_" .. j .. ".png")
+                        fox.anim[j] = love.graphics.newImage("/animations/Fox_" .. j .. ".png")
                     end
 
                 table.insert(foxes, fox)
